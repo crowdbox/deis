@@ -10,6 +10,7 @@ from Crypto.PublicKey import RSA
 from celery.canvas import group
 from django.contrib.auth.models import AnonymousUser, User
 from django.utils import timezone
+from django.conf import settings
 from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.generics import get_object_or_404
@@ -19,6 +20,10 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from api import models
 from api import serializers
 from api import tasks
+
+import urllib2
+import base64
+import os
 
 
 class AnonymousAuthentication(BaseAuthentication):
@@ -60,8 +65,8 @@ class IsOwner(permissions.BasePermission):
             return False
 
 
-class UserRegistrationView(viewsets.GenericViewSet,
-                           viewsets.mixins.CreateModelMixin):
+class GithubAuthView(viewsets.GenericViewSet,
+                     viewsets.mixins.CreateModelMixin):
     model = User
 
     authentication_classes = (AnonymousAuthentication,)
@@ -82,6 +87,34 @@ class UserRegistrationView(viewsets.GenericViewSet,
         obj.is_active = True
         obj.email = User.objects.normalize_email(obj.email)
         obj.set_password(obj.password)
+
+    def authenticate(self, request, **kwargs):
+        request._data = request.DATA.copy()
+        username = request._data['username']
+        password = request._data['password']
+        r = urllib2.Request(
+            "https://api.github.com/authorizations/clients/8f3498a2fac9beebb300"
+        )
+        base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+        r.add_header("Authorization", "Basic %s" % base64string)
+        r.get_method = lambda: 'PUT'
+        data = """{
+            "client_secret": "%s",
+            "scopes": [
+              "user"
+            ]
+        }
+        """ % settings.GITHUB_CLIENT_SECRET
+        response = json.load(urllib2.urlopen(r, data=data))
+        oauth_token = response['token']
+        user = models.User.objects.filter(username=username)
+        request.DATA['password'] = oauth_token
+        if user:
+            user[0].set_password(oauth_token)
+            user[0].save()
+        else:
+            self.create(request, **kwargs)
+        return Response(response['token'])
 
 
 class UserCancellationView(viewsets.GenericViewSet,

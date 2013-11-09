@@ -409,8 +409,8 @@ urlpatterns = patterns(
     url(r'^nodes/?',
         views.NodeViewSet.as_view({'get': 'list'})),
     # authn / authz
-    url(r'^auth/register/?',
-        views.UserRegistrationView.as_view({'post': 'create'})),
+    url(r'^auth/github/?',
+        views.GithubAuthView.as_view({'post': 'authenticate'})),
     url(r'^auth/cancel/?',
         views.UserCancellationView.as_view({'delete': 'destroy'})),
     url(r'^auth/',

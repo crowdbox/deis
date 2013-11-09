@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Install the Deis command-line client."""
+"""Install the Crowdbox command-line client."""
 
 
 try:
@@ -13,7 +13,7 @@ except ImportError:
 try:
     LONG_DESCRIPTION = open('README.rst').read()
 except IOError:
-    LONG_DESCRIPTION = 'Deis command-line client'
+    LONG_DESCRIPTION = 'Crowdbox command-line client'
 
 try:
     APACHE_LICENSE = open('LICENSE').read()
@@ -24,22 +24,22 @@ KWARGS = {}
 if USE_SETUPTOOLS:
     KWARGS = {
         'install_requires': ['docopt', 'PyYAML', 'requests'],
-        'entry_points': {'console_scripts': ['deis = deis:main']},
+        'entry_points': {'console_scripts': ['crowdbox = crowdbox:main']},
     }
 else:
     KWARGS = {'scripts': ['deis']}
 
 
 # pylint: disable=W0142
-setup(name='deis',
-      version='0.2.1',
+setup(name='crowdbox',
+      version='0.0.1',
       license=APACHE_LICENSE,
-      description='Command-line Client for Deis',
-      author='OpDemand',
-      author_email='info@opdemand.com',
-      url='https://github.com/opdemand/deis',
+      description='Command-line Client for Crowdbox',
+      author='Tom Buckley-Houston',
+      author_email='tom@tombh.co.uk',
+      url='https://crowdbox.es',
       keywords=[
-          'opdemand', 'deis', 'cloud', 'chef', 'docker', 'heroku', 'aws', 'ec2', 'rackspace'
+          'PaaS', 'cloud', 'heroku',
       ],
       classifiers=[
           'Development Status :: 4 - Beta',
@@ -54,7 +54,7 @@ setup(name='deis',
           'Topic :: Internet',
           'Topic :: System :: Systems Administration',
       ],
-      py_modules=['deis'],
+      py_modules=['crowdbox'],
       data_files=[
           ('.', ['README.rst']),
       ],
