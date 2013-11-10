@@ -52,7 +52,8 @@ from docopt import DocoptExit
 import requests
 
 __version__ = '0.0.1'
-CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'https://api.crowdbox.es'
+# CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'https://api.crowdbox.es'
+CROWDBOX_API_URL = 'http://deis-controller.local:8000'
 
 
 class Session(requests.Session):
@@ -104,7 +105,7 @@ class Session(requests.Session):
 
         Because Crowdbox only allows deployment of public Github repos we can create unique app
         names from a combination of the Github user's name and the repo name. Eg;
-        'git@github.com:opdemand/deis.git' becomes 'opdemand-deis'
+        'git@github.com:opdemand/example-ruby-sinatra.git' becomes 'opdemand-example--ruby--sinatra'
 
         If no application is found, raise an EnvironmentError.
         """
@@ -114,12 +115,12 @@ class Session(requests.Session):
         m = re.search(r'^origin\W+(?P<url>\S+)\W+\(', remotes, re.MULTILINE)
         if not m:
             raise EnvironmentError(
-                'Could not find deis remote in `git remote -v`')
+                'Could not find origin remote in `git remote -v`')
         url = m.groupdict()['url']
-        m = re.match('\S+:(?P<app>[a-z0-9-]+)(.git)?', url)
+        m = re.match('\S+:(?P<user_app>[a-z0-9-/]+)(.git)?', url)
         if not m:
             raise EnvironmentError("Could not parse: {url}".format(**locals()))
-        return m.groupdict()['app']  # TODO: prepend user/org onto app name
+        return m.groupdict()['user_app'].replace('-', '--').replace('/', '-')
 
     app = property(get_app)
 
@@ -353,22 +354,21 @@ class CrowdboxClient(object):
 
         Usage: crowdbox apps:create
         """
-        body = {}
         try:
             self._session.git_root()  # check for a git repository
         except EnvironmentError:
             print('No git repository found, use `git init` to create one')
             sys.exit(1)
-        app_name = self._session.get_app()
-        body.update({'formation': 'swanson'})
+        data = {
+            'id': self._session.get_app(),
+            'formation': 'swanson'
+        }
         sys.stdout.write('Creating application... ')
         sys.stdout.flush()
         try:
             progress = TextProgress()
             progress.start()
-            response = self._dispatch('post', '/api/apps',
-                                      json.dumps(body))
-            # TODO disbale app name creation and send the calculated name
+            response = self._dispatch('post', '/api/apps', json.dumps(data))
         finally:
             progress.cancel()
             progress.join()
@@ -458,9 +458,16 @@ class CrowdboxClient(object):
         Even though this command requires that you are inside a git repo to determine which app
         to deploy, the actual deployment is done on the Controller.
 
-        Usage: `crowdbox apps:deploy`
+        Usage: crowdbox apps:deploy  [--app=<app>]
         """
-        pass
+        app = args.get('--app')
+        if not app:
+            app = self._session.app
+        url = "{}/api/apps/{}/deploy".format(CROWDBOX_API_URL, app)
+        response = self._session.get(url, stream=True)
+        for line in response.iter_lines():
+            if line:  # filter out keep-alive new lines
+                print(line)
 
     def apps_open(self, args):
         """
@@ -563,6 +570,29 @@ and pass it with `--oauth-key=`: goto http://crowdbox.es/get_oauth_token""")
         else:
             print('Github authentication failed', response.content)
             return False
+
+    def auth_show_token(self, args):
+        """
+        Just a convenience method to show your current Github token. Handy if you want to login
+        with the deis client instead because it uses the token as the password.
+
+        Usage: crowdbox auth:show_token [options]
+
+        Options:
+
+        --username=USERNAME    Github username
+        --password=PASSWORD    Github password
+        """
+        username = args.get('--username')
+        if not username:
+            username = raw_input('Github username: ')
+        password = args.get('--password')
+        if not password:
+            password = getpass('Github password: ')
+        payload = {'username': username, 'password': password}
+        url = urlparse.urljoin(CROWDBOX_API_URL, '/api/auth/github')
+        token = self._session.post(url, data=payload, allow_redirects=False).content
+        print("Your current Github token is: %s" % token)
 
     def auth_cancel(self, args):
         """
@@ -865,6 +895,7 @@ def parse_args(cmd):
         'login': 'auth:login',
         'logout': 'auth:logout',
         'create': 'apps:create',
+        'deploy': 'apps:deploy',
         'destroy': 'apps:destroy',
         'ps': 'containers:list',
         'info': 'apps:info',

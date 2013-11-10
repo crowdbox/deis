@@ -10,7 +10,7 @@ from Crypto.PublicKey import RSA
 from celery.canvas import group
 from django.contrib.auth.models import AnonymousUser, User
 from django.utils import timezone
-from django.conf import settings
+from django.http import StreamingHttpResponse
 from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.generics import get_object_or_404
@@ -104,15 +104,15 @@ class GithubAuthView(viewsets.GenericViewSet,
               "user"
             ]
         }
-        """ % settings.GITHUB_CLIENT_SECRET
+        """ % os.environ['GITHUB_CLIENT_SECRET']
         response = json.load(urllib2.urlopen(r, data=data))
         oauth_token = response['token']
         user = models.User.objects.filter(username=username)
-        request.DATA['password'] = oauth_token
         if user:
             user[0].set_password(oauth_token)
             user[0].save()
         else:
+            request.DATA['password'] = oauth_token
             self.create(request, **kwargs)
         return Response(response['token'])
 
@@ -345,6 +345,19 @@ class AppViewSet(OwnerViewSet):
             return OwnerViewSet.create(self, request, **kwargs)
         except EnvironmentError as e:
             return Response(str(e), status=HTTP_400_BAD_REQUEST)
+
+    def deploy(self, request, **kwargs):
+        response = StreamingHttpResponse(self.stream_response_generator())
+        return response
+
+    def stream_response_generator(self):
+        import time
+        yield "<html><body>\n"
+        for x in range(1, 100):
+            yield "<div>%s</div>\n" % x
+            yield " " * 10240
+            time.sleep(0.1)
+        yield "</body></html>\n"
 
     def scale(self, request, **kwargs):
         new_structure = {}

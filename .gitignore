@@ -53,6 +53,7 @@ venv/
 Vagrantfile.local
 *.swp
 .bundle
+.sensitive_env_vars
 
 # Chef setup
 .chef

@@ -395,6 +395,8 @@ urlpatterns = patterns(
         views.AppViewSet.as_view({'post': 'run'})),
     url(r'^apps/(?P<id>[-_\w]+)/calculate/?',
         views.AppViewSet.as_view({'post': 'calculate'})),
+    url(r'^apps/(?P<id>[-_\w]+)/deploy/?',
+        views.AppViewSet.as_view({'get': 'deploy'})),
     # apps base endpoint
     url(r'^apps/(?P<id>[-_\w]+)/?',
         views.AppViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})),

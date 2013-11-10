@@ -3,7 +3,7 @@ Django settings for the Deis project.
 """
 
 from __future__ import unicode_literals
-import os.path
+import os
 import tempfile
 
 
@@ -307,6 +307,16 @@ PROVIDER_MODULES = ('mock',)
 # EMAIL_HOST_USER = 'foo'
 # EMAIL_HOST_PASSWORD = 'bar'
 
+# Set sensitive environment variables: passwords, secrets, etc.
+# These are values that can't be commited to the deis or deis-cookbook repo.
+try:
+    var_file = "%s/.sensitive_env_vars" % PROJECT_ROOT
+    lines = [line.strip() for line in open(var_file)]
+    for line in lines:
+        pieces = line.split("=")
+        os.environ[pieces[0].strip()] = pieces[1].strip()
+except IOError:
+    pass
 
 try:
     from .local_settings import *  # @UnusedWildImport # noqa

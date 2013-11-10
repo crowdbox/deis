@@ -159,7 +159,6 @@ class AppSerializer(serializers.ModelSerializer):
     """Serialize a :class:`~api.models.App` model."""
 
     owner = serializers.Field(source='owner.username')
-    id = serializers.SlugField(default=utils.generate_app_name)
     formation = OwnerSlugRelatedField(slug_field='id')
 
     class Meta:
