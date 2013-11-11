@@ -308,7 +308,7 @@ PROVIDER_MODULES = ('mock',)
 # EMAIL_HOST_PASSWORD = 'bar'
 
 # Set sensitive environment variables: passwords, secrets, etc.
-# These are values that can't be commited to the deis or deis-cookbook repo.
+# These are values that can't be committed to the deis or deis-cookbook repo.
 try:
     var_file = "%s/.sensitive_env_vars" % PROJECT_ROOT
     lines = [line.strip() for line in open(var_file)]

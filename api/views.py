@@ -355,8 +355,8 @@ class AppViewSet(OwnerViewSet):
         yield "<html><body>\n"
         for x in range(1, 100):
             yield "<div>%s</div>\n" % x
-            yield " " * 10240
-            time.sleep(0.1)
+            # yield " " * 10240
+            time.sleep(1)
         yield "</body></html>\n"
 
     def scale(self, request, **kwargs):
