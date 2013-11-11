@@ -24,6 +24,7 @@ from api import tasks
 import urllib2
 import base64
 import os
+import uuid
 
 
 class AnonymousAuthentication(BaseAuthentication):
@@ -347,17 +348,10 @@ class AppViewSet(OwnerViewSet):
             return Response(str(e), status=HTTP_400_BAD_REQUEST)
 
     def deploy(self, request, **kwargs):
-        response = StreamingHttpResponse(self.stream_response_generator())
-        return response
-
-    def stream_response_generator(self):
-        import time
-        yield "<html><body>\n"
-        for x in range(1, 100):
-            yield "<div>%s</div>\n" % x
-            # yield " " * 10240
-            time.sleep(1)
-        yield "</body></html>\n"
+        secret = str(uuid.uuid1())
+        file = "/tmp/deis/rendevous_secrets/{}".format(secret)
+        open(file, 'a')
+        return Response(secret)
 
     def scale(self, request, **kwargs):
         new_structure = {}

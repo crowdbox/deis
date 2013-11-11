@@ -40,6 +40,7 @@ import json
 import os.path
 import random
 import re
+import socket
 import subprocess
 import sys
 import time
@@ -52,8 +53,7 @@ from docopt import DocoptExit
 import requests
 
 __version__ = '0.0.1'
-# CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'https://api.crowdbox.es'
-CROWDBOX_API_URL = 'http://deis-controller.local:8000'
+CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'https://api.crowdbox.es'
 
 
 class Session(requests.Session):
@@ -288,6 +288,21 @@ def trim(docstring):
     return '\n'.join(trimmed)
 
 
+def _rendevous(command, secret):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    host = urlparse.urlparse(CROWDBOX_API_URL).hostname
+    s.connect((host, 9000))
+
+    s.sendall("{}\n{}\n\r\n".format(secret, command))
+
+    while True:
+        data = s.recv(1024)
+        sys.stdout.write(data)
+        if not data:
+            break
+    s.close()
+
+
 class ResponseError(Exception):
     pass
 
@@ -464,10 +479,10 @@ class CrowdboxClient(object):
         if not app:
             app = self._session.app
         url = "{}/api/apps/{}/deploy".format(CROWDBOX_API_URL, app)
-        response = self._session.get(url, stream=True)
-        for line in response.iter_lines():
-            if line:  # filter out keep-alive new lines
-                print(line)
+        secret = self._session.get(url, stream=True).content.replace('"', '')
+        username = self._settings['username']
+        cmd = 'build:{}:{}'.format(app, username)
+        _rendevous(cmd, secret)
 
     def apps_open(self, args):
         """
@@ -563,6 +578,8 @@ and pass it with `--oauth-key=`: goto http://crowdbox.es/get_oauth_token""")
         if response.status_code == requests.codes.ok:  # @UndefinedVariable
             oauth_token = response.content.replace('"', '')
             if self._login(username, oauth_token):
+                self._settings['username'] = username
+                self._settings.save()
                 print('Logged in as {}'.format(username))
             else:
                 print('Login failed')
