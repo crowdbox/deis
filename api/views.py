@@ -10,7 +10,6 @@ from Crypto.PublicKey import RSA
 from celery.canvas import group
 from django.contrib.auth.models import AnonymousUser, User
 from django.utils import timezone
-from django.http import StreamingHttpResponse
 from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.generics import get_object_or_404
@@ -349,8 +348,11 @@ class AppViewSet(OwnerViewSet):
 
     def deploy(self, request, **kwargs):
         secret = str(uuid.uuid1())
-        file = "/tmp/deis/rendevous_secrets/{}".format(secret)
-        open(file, 'a')
+        folder = "/tmp/deis/rendevous_secrets"
+        secret_file = "{}/{}".format(folder, secret)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        open(secret_file, 'a')
         return Response(secret)
 
     def scale(self, request, **kwargs):

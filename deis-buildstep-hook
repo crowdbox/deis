@@ -1,7 +1,6 @@
 #!/usr/bin/python
 from yaml.error import YAMLError
 import argparse
-import getpass
 import json
 import os
 import subprocess
@@ -153,7 +152,7 @@ if __name__ == '__main__':
             'config': release.get('config_vars', {})}
     # TODO: why can't we run this with `sudo -u deis`?
     output = subprocess.check_output(
-        ['sudo', '-u', 'deis', '/opt/deis/controller/bin/pre-push-hook'])
+        ['/opt/deis/controller/bin/pre-push-hook'])
     data = json.loads(output)
     ip = data['domain']
     push['url'] = "http://{ip}/slugs/{args.app}-{sha}.tar.gz".format(**locals())
@@ -165,7 +164,7 @@ if __name__ == '__main__':
     # run
     sys.stdout.write("       " + "Launching... ")
     sys.stdout.flush()
-    p = subprocess.Popen(['sudo', '-u', 'deis', '/opt/deis/controller/bin/push-hook'],
+    p = subprocess.Popen(['/opt/deis/controller/bin/push-hook'],
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate(json.dumps(push))
     rc = p.wait()
@@ -175,7 +174,7 @@ if __name__ == '__main__':
     sys.stdout.write("done, v{}\n".format(databag['release']['version']))
     sys.stdout.flush()
     puts_line()
-    puts_step("{args.app} deployed to Deis".format(**locals()))
+    puts_step("{args.app} deployed to Crowdbox".format(**locals()))
     domains = databag.get('domains', [])
     if domains:
         for domain in domains:
