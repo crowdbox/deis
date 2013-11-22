@@ -1,0 +1,133 @@
+import os
+import sys
+
+base_path = os.path.abspath(os.path.join(__file__, '..', '..'))
+sys.path.insert(0, base_path)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'deis.settings'
+
+from twisted.internet import reactor, protocol
+from api.models import App
+
+CHEF_VALIDATION_PEM = open('/etc/chef/validation.pem').read()
+
+
+def debug(message):
+    pass
+    # print("DEBUG: {}".format(message))
+
+
+def log(message):
+    print(message)
+
+
+class RendevousProtocol(protocol.Protocol):
+    request = ""
+
+    def connectionMade(self):
+        debug('Connection made')
+        self.process = ProcessProtocol(self)
+        # NB you can write to the spawned process' STDIN with self.process.transport.write(data)
+
+    # Triggered when client sends data
+    def dataReceived(self, data):
+        debug("Data: >>>{}<<<".format(data))
+        # TODO: ignore data if spawned process is running
+        self.request = self.request + data
+        # Arbitrary, but use "\r\n" to indicate end of request
+        if data.endswith("\r\n"):
+            self.completeRequest(self.request)
+
+    def completeRequest(self, request):
+        lines = request.splitlines()
+
+        task = lines.pop(0).strip()
+
+        if task == 'heartbeat':
+            self.heartbeat(lines)
+        if task == 'build':
+            self.build(lines)
+
+    # If the socket connection is lost then close the process
+    def conectionLost(self):
+        self.process.tranport.loseConnection()
+
+    def heartbeat(self, lines):
+        lines.pop()
+        stage = None
+        pem = []
+        apps = []
+        for line in lines:
+            if stage == 'APPS':
+                apps.append(line)
+            if line == '-----BEGIN RSA PRIVATE KEY-----':
+                stage = 'PEM'
+            if stage == 'PEM':
+                pem.append(line)
+            if line == '-----END RSA PRIVATE KEY-----':
+                stage = 'APPS'
+                pem.append("\n")
+                pem = "\n".join(pem)
+                if pem != CHEF_VALIDATION_PEM:
+                    log("ERROR: Heartbeat PEM not valid")
+                    return
+
+        for app in apps:
+            # select_for_update() provides a transaction for atomic increment
+            app = App.objects.select_for_update().filter(id=app)[0]
+            app.heartbeats = app.heartbeats + 1
+            app.save()
+
+    def build(self, lines):
+        # A very crude means of security to stop any old hacker getting through
+        secret = lines.pop(0)
+        debug("Secret: {}".format(secret))
+        secret_file = "/tmp/deis/rendevous_secrets/{}".format(str(secret))
+        try:
+            with open(secret_file):
+                try:
+                    os.remove(secret_file)
+                except IOError:
+                    log('Problem removing rendevous secret.')
+        except IOError, e:
+            log(str(e))
+            self.transport.write('Incorrect secret sent.')
+            self.transport.loseConnection()
+            return
+
+        # The actual command to run
+        # Syntax example: build:app_name:user
+        payload = lines[0].split(':')
+        debug("Payload: {}".format(payload))
+        if payload[0] == 'build':
+            cmd = ["/usr/local/bin/deis-buildstep-hook", payload[1], payload[2]]
+        else:
+            self.transport.write('Unrecognised command. Aborting.')
+            return
+
+        # spawn detached process
+        reactor.spawnProcess(
+            self.process,
+            cmd[0],
+            cmd,
+            env=None,
+            usePTY=1
+        )
+
+
+class ProcessProtocol(protocol.ProcessProtocol):
+    def __init__(self, socket):
+        self.socket = socket
+
+    # Redirect output of spawned process back to the client
+    def outReceived(self, data):
+        self.socket.transport.write(data)
+
+    # If process ends then close the socket
+    def processEnded(self, reason):
+        self.socket.transport.loseConnection()
+
+
+f = protocol.Factory()
+f.protocol = RendevousProtocol
+reactor.listenTCP(9000, f)
+reactor.run()

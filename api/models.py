@@ -443,6 +443,7 @@ class App(UuidAuditedModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     id = models.SlugField(max_length=64, unique=True)
     formation = models.ForeignKey('Formation')
+    heartbeats = models.PositiveIntegerField(default=0)
 
     containers = JSONField(default='{}', blank=True)
 
