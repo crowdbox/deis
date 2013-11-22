@@ -347,12 +347,21 @@ class AppViewSet(OwnerViewSet):
             return Response(str(e), status=HTTP_400_BAD_REQUEST)
 
     def deploy(self, request, **kwargs):
+        """
+        Creates a random file name with the build instructions.
+
+        Returns name of random file.
+        """
         secret = str(uuid.uuid1())
         folder = "/tmp/deis/rendevous_secrets"
         secret_file = "{}/{}".format(folder, secret)
+        app_name = self.get_object().id
+        user = request.user
         if not os.path.exists(folder):
             os.makedirs(folder)
-        open(secret_file, 'a')
+        f = open(secret_file, 'a')
+        f.write("{}:{}".format(app_name, user))
+        f.close()
         return Response(secret)
 
     def scale(self, request, **kwargs):

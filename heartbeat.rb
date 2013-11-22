@@ -34,7 +34,7 @@ loop do
 
   # This is the heartbeat payload
   payload = []
-  payload << 'heartbeat' # First line is the task
+  payload << 'HEARTBEAT' # First line is the task
   payload << CHEF_VALIDATION_PEM # Security measure
   payload += apps # List of apps
   payload << "\r\n" # Syntax for ending communication

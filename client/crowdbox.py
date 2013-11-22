@@ -288,12 +288,12 @@ def trim(docstring):
     return '\n'.join(trimmed)
 
 
-def _rendevous(command, secret):
+def _rendevous(command):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = urlparse.urlparse(CROWDBOX_API_URL).hostname
     s.connect((host, 9000))
 
-    s.sendall("{}\n{}\n\r\n".format(secret, command))
+    s.sendall("{}\n\r\n".format(command))
 
     while True:
         data = s.recv(1024)
@@ -480,9 +480,8 @@ class CrowdboxClient(object):
             app = self._session.app
         url = "{}/api/apps/{}/deploy".format(CROWDBOX_API_URL, app)
         secret = self._session.get(url, stream=True).content.replace('"', '')
-        username = self._settings['username']
-        cmd = 'build:{}:{}'.format(app, username)
-        _rendevous(cmd, secret)
+        cmd = "BUILD\n{}".format(secret)
+        _rendevous(cmd)
 
     def apps_open(self, args):
         """

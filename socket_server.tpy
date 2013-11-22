@@ -12,8 +12,7 @@ CHEF_VALIDATION_PEM = open('/etc/chef/validation.pem').read()
 
 
 def debug(message):
-    pass
-    # print("DEBUG: {}".format(message))
+    print("DEBUG: {}".format(message))
 
 
 def log(message):
@@ -42,9 +41,9 @@ class RendevousProtocol(protocol.Protocol):
 
         task = lines.pop(0).strip()
 
-        if task == 'heartbeat':
+        if task == 'HEARTBEAT':
             self.heartbeat(lines)
-        if task == 'build':
+        if task == 'BUILD':
             self.build(lines)
 
     # If the socket connection is lost then close the process
@@ -85,6 +84,7 @@ class RendevousProtocol(protocol.Protocol):
         try:
             with open(secret_file):
                 try:
+                    payload = open(secret_file).read()
                     os.remove(secret_file)
                 except IOError:
                     log('Problem removing rendevous secret.')
@@ -96,13 +96,9 @@ class RendevousProtocol(protocol.Protocol):
 
         # The actual command to run
         # Syntax example: build:app_name:user
-        payload = lines[0].split(':')
+        payload = payload.split(':')
         debug("Payload: {}".format(payload))
-        if payload[0] == 'build':
-            cmd = ["/usr/local/bin/deis-buildstep-hook", payload[1], payload[2]]
-        else:
-            self.transport.write('Unrecognised command. Aborting.')
-            return
+        cmd = ["/usr/local/bin/deis-buildstep-hook", payload[0], payload[1]]
 
         # spawn detached process
         reactor.spawnProcess(
