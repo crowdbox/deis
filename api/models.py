@@ -444,6 +444,7 @@ class App(UuidAuditedModel):
     id = models.SlugField(max_length=64, unique=True)
     formation = models.ForeignKey('Formation')
     heartbeats = models.PositiveIntegerField(default=0)
+    credits = models.DecimalField(default=0, decimal_places=5, max_digits=10)
 
     containers = JSONField(default='{}', blank=True)
 
@@ -535,6 +536,14 @@ class App(UuidAuditedModel):
         command = "/bin/sh -c '{base_cmd} && {command}'".format(**locals())
         command = "sudo docker run {docker_args} {command}".format(**locals())
         return node.run(command)
+
+    def scaleoff(self):
+        """
+        When an app runs out of credits scale all its containers down.
+        """
+        # TODO: spin down *all* container types
+        Container.objects.scale(self, {'web': 0, 'worker': 0})
+        self.converge()
 
 
 @python_2_unicode_compatible

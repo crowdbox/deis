@@ -74,6 +74,10 @@ class RendevousProtocol(protocol.Protocol):
             # select_for_update() provides a transaction for atomic increment
             app = App.objects.select_for_update().filter(id=app)[0]
             app.heartbeats = app.heartbeats + 1
+            app.credits = app.credits - 1
+            if app.credits < 0:
+                app.credits = 0  # In case containers don't get shut down properly
+                app.scaleoff()
             app.save()
 
     def build(self, lines):

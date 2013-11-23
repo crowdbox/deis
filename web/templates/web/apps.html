@@ -20,6 +20,10 @@
         <dd>{{ app.created }}</dd>
         <dt>Owned by</dt>
         <dd>{{ app.owner }}</dd>
+        <dt>Heartbeats</dt>
+        <dd>{{ app.heartbeats }}</dd>
+        <dt>Credits</dt>
+        <dd>{{ app.credits }}</dd>
         <dt>In formation</dt>
         <dd><a href="{% url 'formations' %}#{{ app.formation }}"
           class="pink">{{ app.formation }}</a></dd>
