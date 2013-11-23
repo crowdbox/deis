@@ -8,7 +8,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'deis.settings'
 from twisted.internet import reactor, protocol
 from api.models import App
 
-CHEF_VALIDATION_PEM = open('/etc/chef/validation.pem').read()
+CHEF_VALIDATION_PEM = open('/opt/deis/.chef/validator.pem').read()
 
 
 def debug(message):
