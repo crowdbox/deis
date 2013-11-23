@@ -17,3 +17,4 @@ pycrypto==2.6.1
 pyrax==1.6.1
 PyYAML==3.10
 South==0.8.2
+Twisted==13.2.0

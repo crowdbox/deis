@@ -291,7 +291,7 @@ def trim(docstring):
 def _rendevous(command):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = urlparse.urlparse(CROWDBOX_API_URL).hostname
-    s.connect((host, 9000))
+    s.connect((host, 6315))
 
     s.sendall("{}\n\r\n".format(command))
 
