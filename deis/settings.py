@@ -158,6 +158,7 @@ INSTALLED_APPS = (
     'cm',
     'provider',
     'web',
+    'captcha',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -190,6 +191,11 @@ REST_FRAMEWORK = {
 
 # URLs that end with slashes are ugly
 APPEND_SLASH = False
+
+CAPTCHA_FONT_SIZE = 52
+CAPTCHA_NOISE_FUNCTIONS = ()
+CAPTCHA_LETTER_ROTATION = None
+# CAPTCHA_FONT_PATH = '%s/web/static/fonts/KaushanScript-Regular.otf' % PROJECT_ROOT
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

@@ -545,6 +545,32 @@ class App(UuidAuditedModel):
         Container.objects.scale(self, {'web': 0, 'worker': 0})
         self.converge()
 
+    def addCredits(self, credits):
+        """
+        Add credits to app. Also take a cut for Crowdbox and spread the rest around the other apps.
+        TODO: use transations to make this atomic
+        """
+        CROWDBOX_CUT = 0.05
+        POOL_CUT = 0.05
+        remaining = 1 - CROWDBOX_CUT - POOL_CUT
+        #crowdbox_credits = credits * CROWDBOX_CUT
+        pool_credits = credits * POOL_CUT
+        remaining_credits = credits * remaining
+
+        # Give the majority to the chosen app
+        self.credits = float(self.credits) + remaining_credits
+        self.save()
+
+        # Give a slice to all the other apps
+        # TODO; don't give to apps that aren't being used
+        apps = App.objects.all()
+        share = pool_credits / len(apps)
+        for app in apps:
+            if app.id == self.id:
+                continue
+            app.credits = app.credits + share
+            app.save()
+
 
 @python_2_unicode_compatible
 class ContainerManager(models.Manager):

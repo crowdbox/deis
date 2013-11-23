@@ -1,17 +1,27 @@
 {% extends "web/base.html" %}
 {% load humanize %}
 
-{% block title %}Apps{% endblock %}
+{% block title %}{{ app.id }}{% endblock %}
 
 {% block content %}
 <div class="blue">
-  <h1>{% if apps %}{{ apps|length|apnumber|capfirst }}{% else %}No{% endif %}
-   App{{ apps|pluralize }}</a></h1>
-  {% for app in apps %}
+  <h1>{{ app.id }}</h1>
   <div class="row-fluid well">
     <div class="span3">
       <h3>{{ app.id }}</h3>
     </div>
+
+    <form action="" method="post">
+        {% csrf_token %}
+
+        {{form.captcha.errors}}
+        {{form.captcha}}
+
+        <div>
+            <input type="submit" value="Submit" />
+        </div>
+    </form>
+
     <div class="span6">
       <dl class="dl-horizontal">
         <dt>Updated</dt>
@@ -24,17 +34,18 @@
         <dd>{{ app.heartbeats }}</dd>
         <dt>Credits</dt>
         <dd>{{ app.credits }}</dd>
-        <dt>In formation</dt>
-        <dd><a href="{% url 'formations' %}#{{ app.formation }}"
-          class="pink">{{ app.formation }}</a></dd>
       </dl>
     </div>
     <div class="span3">
-      {% for container in app.containers %}
-      {{ container }}
-      {% endfor %}
+      {% if containers|length > 0 %}
+        {% for container in containers %}
+          {{ container.type }}
+          {{ container.num }}
+        {% endfor %}
+      {% else %}
+        <strong>This is app is not currently running</strong>
+      {% endif %}
     </div>
   </div>
-  {% endfor %}
 </div>
 {% endblock %}

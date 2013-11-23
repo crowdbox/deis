@@ -2,65 +2,37 @@
 View classes for presenting Deis web pages.
 """
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
 from django.shortcuts import render
-
 from api.models import App
-from api.models import Formation
-from deis import __version__
+from web.forms import CaptchaForm
 
 
-@login_required
-def account(request):
-    """Return the user's account web page."""
-    return render(request, 'web/account.html', {
-        'page': 'account',
-    })
-
-
-@login_required
-def dashboard(request):
-    """Return the user's dashboard web page."""
-    apps = App.objects.filter(owner=request.user)
-    formations = Formation.objects.filter(owner=request.user)
-    return render(request, 'web/dashboard.html', {
-        'page': 'dashboard',
+def home(request):
+    """The home page with a list of apps on"""
+    apps = App.objects.all()
+    return render(request, 'web/home.html', {
+        'page': 'home',
         'apps': apps,
-        'formations': formations,
-        'version': __version__,
     })
 
 
-@login_required
-def formations(request):
-    """Return the user's formations web page."""
-    formations = Formation.objects.filter(owner=request.user)
-    return render(request, 'web/formations.html', {
-        'page': 'formations',
-        'formations': formations,
-    })
-
-
-@login_required
-def apps(request):
+def app(request, id):
     """Return the user's apps web page."""
-    apps = App.objects.filter(owner=request.user)
-    return render(request, 'web/apps.html', {
-        'page': 'apps',
-        'apps': apps,
-    })
+    app = App.objects.get(id=id)
 
+    if request.POST:
+        form = CaptchaForm(request.POST)
 
-@login_required
-def docs(request):
-    """Return the documentation index."""
-    return redirect('http://docs.deis.io/')
+        # Validate the form: the captcha field will automatically
+        # check the input
+        if form.is_valid():
+            app.addCredits(60)
+    else:
+        form = CaptchaForm()
 
-
-@login_required
-def support(request):
-    """Return the support ticket system home page."""
-    return render(request, 'web/support.html', {
-        'page': 'support',
+    return render(request, 'web/app.html', {
+        'page': 'app',
+        'app': app,
+        'containers': app.container_set.all(),
+        'form': form,
     })

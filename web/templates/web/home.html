@@ -1,0 +1,17 @@
+{% extends "web/base.html" %}
+{% load humanize %}
+
+{% block title %}Crowdbox{% endblock %}
+
+{% block content %}
+<div class="green">
+  <h1>Crowdbox</h1>
+  <p>
+    {% for app in apps %}
+      <a href="{% url 'web.views.app' app.id %}">
+        {{ app.id }}
+      </a>
+    {% endfor %}
+  </p>
+</div>
+{% endblock %}
