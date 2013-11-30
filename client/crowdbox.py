@@ -53,7 +53,7 @@ from docopt import DocoptExit
 import requests
 
 __version__ = '0.0.1'
-CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'https://api.crowdbox.es'
+CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'http://crowdbox.es'
 
 
 class Session(requests.Session):
