@@ -37,7 +37,7 @@ setup(name='crowdbox',
       description='Command-line Client for Crowdbox',
       author='Tom Buckley-Houston',
       author_email='tom@tombh.co.uk',
-      url='https://crowdbox.es',
+      url='http://crowdbox.io',
       keywords=[
           'PaaS', 'cloud', 'heroku',
       ],
