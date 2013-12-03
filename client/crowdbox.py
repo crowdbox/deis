@@ -110,17 +110,21 @@ class Session(requests.Session):
         If no application is found, raise an EnvironmentError.
         """
         git_root = self.git_root()
-        # try to find the 'origin' remote
         remotes = subprocess.check_output(['git', 'remote', '-v'], cwd=git_root)
-        m = re.search(r'^origin\W+(?P<url>\S+)\W+\(', remotes, re.MULTILINE)
-        if not m:
-            raise EnvironmentError(
-                'Could not find origin remote in `git remote -v`')
-        url = m.groupdict()['url']
-        m = re.match('\S+:(?P<user_app>[a-z0-9-/]+)(.git)?', url)
-        if not m:
-            raise EnvironmentError("Could not parse: {url}".format(**locals()))
-        return m.groupdict()['user_app'].replace('-', '--').replace('/', '-')
+        if remotes is None:
+            raise EnvironmentError('No git remotes found.')
+        for remote in remotes.splitlines():
+            if 'github.com' in remote:
+                url = remote.split()[1]
+                break
+        if url is None:
+            raise EnvironmentError('No Github remotes found.')
+        pieces = url.split('/')
+        owner = pieces[-2]
+        repo = pieces[-1].replace('.git', '')
+        app_raw = owner + '/' + repo
+        app_name = app_raw.replace('-', '--').replace('/', '-')
+        return app_name
 
     app = property(get_app)
 
