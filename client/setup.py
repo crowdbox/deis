@@ -32,7 +32,7 @@ else:
 
 # pylint: disable=W0142
 setup(name='crowdbox',
-      version='0.0.1',
+      version='0.0.2',
       license=APACHE_LICENSE,
       description='Command-line Client for Crowdbox',
       author='Tom Buckley-Houston',
