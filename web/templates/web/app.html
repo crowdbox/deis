@@ -7,11 +7,15 @@
 <div class="blue">
   <h1>{{ app.id }}</h1>
   <div class="row-fluid well">
-    <div class="span3">
-      <h3>{{ app.id }}</h3>
+    <div class="span12">
+    <strong>Served from:</strong>
+      <h3><a href="http://{{ app.id }}.crowdbox.es">http://{{ app.id }}.crowdbox.es</a></h3>
     </div>
+  </div>
 
-    <form action="" method="post">
+  <div class="row-fluid well">
+    <strong>Donation form:</strong>
+    <form action="" method="post" class="span12">
         {% csrf_token %}
 
         {{form.captcha.errors}}
@@ -21,8 +25,11 @@
             <input type="submit" value="Submit" />
         </div>
     </form>
+  </div>
 
+  <div class="row-fluid well">
     <div class="span6">
+    <strong>Details:</strong>
       <dl class="dl-horizontal">
         <dt>Updated</dt>
         <dd>{{ app.updated }}</dd>
@@ -34,14 +41,18 @@
         <dd>{{ app.heartbeats }}</dd>
         <dt>Credits</dt>
         <dd>{{ app.credits }}</dd>
+        <dt>Github</dt>
+        <dd>{{}}</dd>
       </dl>
     </div>
-    <div class="span3">
+    <div class="span6">
       {% if containers|length > 0 %}
-        {% for container in containers %}
-          {{ container.type }}
-          {{ container.num }}
-        {% endfor %}
+        <dl class="dl-horizontal">
+          {% for container in containers %}
+            <dt>{{ container.type }}</dt>
+            <dd>{{ container.num }}</dd>
+          {% endfor %}
+        </dl>
       {% else %}
         <strong>This is app is not currently running</strong>
       {% endif %}
