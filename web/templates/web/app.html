@@ -4,12 +4,13 @@
 {% block title %}{{ app.id }}{% endblock %}
 
 {% block content %}
+<h1><a href="/">Crowdbox</a></h1>
 <div class="blue">
-  <h1>{{ app.id }}</h1>
+  <h2>{{ app.id }}</h2>
   <div class="row-fluid well">
     <div class="span12">
     <strong>Served from:</strong>
-      <h3><a href="http://{{ app.id }}.crowdbox.es">http://{{ app.id }}.crowdbox.es</a></h3>
+      <h3><a href="http://{{ app.id }}.{{ app.formation.domain }}">http://{{ app.id }}.{{ app.formation.domain }}</a></h3>
     </div>
   </div>
 
@@ -42,7 +43,7 @@
         <dt>Credits</dt>
         <dd>{{ app.credits }}</dd>
         <dt>Github</dt>
-        <dd>{{}}</dd>
+        <dd><a href="{{ app.github_uri }}">{{ app.github_uri }}</a></dd>
       </dl>
     </div>
     <div class="span6">

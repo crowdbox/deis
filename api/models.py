@@ -454,7 +454,6 @@ class App(UuidAuditedModel):
     def github_uri(self):
         """
         TODO: Need to look at what happens to Github URIs that already have double hyphens in them.
-        NB. This conversion also exists in buildstep-hook
         """
         path = self.id\
             .replace('--', '*placeholder*')\
