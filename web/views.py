@@ -18,6 +18,7 @@ def home(request):
 
 def app(request, id):
     """Return the user's apps web page."""
+
     app = App.objects.get(id=id)
 
     if request.POST:

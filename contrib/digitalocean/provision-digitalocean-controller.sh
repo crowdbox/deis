@@ -5,21 +5,17 @@
 # Retrieve the region-id by using `knife digital_ocean region list`
 #
 
+if [[ -z $1 ]]; then
+  echo usage: $0 [region]
+  exit 1
+fi
+
 function echo_color {
   echo -e "\033[1m$1\033[0m"
 }
 
-function usage {
-  echo_color "Usage: provision-digitalocean-controller.sh <region-id>"
-}
-
 THIS_DIR=$(cd $(dirname $0); pwd) # absolute path
 CONTRIB_DIR=$(dirname $THIS_DIR)
-
-if [[ -z $1 ]]; then
-  usage
-  exit 1
-fi
 
 # check for Deis' general dependencies
 if ! $CONTRIB_DIR/check-deis-deps.sh; then
@@ -27,32 +23,29 @@ if ! $CONTRIB_DIR/check-deis-deps.sh; then
   exit 1
 fi
 
-echo_color "Provisioning a deis controller on Digital Ocean!"
-
 # connection details for using digital ocean's API
-client_id=$(knife exec -E"puts Chef::Config[:knife][:digital_ocean_client_id]")
-api_key=$(knife exec -E"puts Chef::Config[:knife][:digital_ocean_api_key]")
+client_id=${DIGITALOCEAN_CLIENT_ID:-$(knife exec -E"puts Chef::Config[:knife][:digital_ocean_client_id]")}
+api_key=${DIGITALOCEAN_API_KEY:-$(knife exec -E"puts Chef::Config[:knife][:digital_ocean_api_key]")}
 
 # Check that client ID and API key was set
 if test -z $client_id; then
-  echo "Please add your client id to ${knife_file}."
+  echo "Please add your Digital Ocean Client ID to the shell's environment or knife.rb."
 fi
 
 if test -z $api_key; then
-  echo "Please add your api key to ${knife_file}."
+  echo "Please add your Digital Ocean API Key to the shell's environment or knife.rb."
 fi
 
 #################
 # chef settings #
 #################
-
 node_name=deis-controller
 run_list="recipe[deis::controller]"
 chef_version=11.6.2
 
-##########################
-# digital ocean settings #
-##########################
+#########################
+# digitalocean settings #
+#########################
 
 # the name of the location we want to work with
 region_id=$1
@@ -75,8 +68,7 @@ fi
 ################
 # SSH settings #
 ################
-
-key_name="deis-controller"
+key_name=deis-controller
 ssh_key_path=~/.ssh/$key_name
 
 # create ssh keypair and store it
@@ -110,15 +102,15 @@ echo_color "Provisioning $node_name with knife digital_ocean..."
 
 set -x
 knife digital_ocean droplet create \
-    --bootstrap-version $chef_version \
-    --server-name $node_name \
-    --image $image_id \
-    --location $region_id \
-    --size $size_id \
-    --ssh-keys $ssh_key_id \
-    --identity-file $ssh_key_path \
-    --bootstrap \
-    --run-list $run_list
+  --bootstrap-version $chef_version \
+  --server-name $node_name \
+  --image $image_id \
+  --location $region_id \
+  --size $size_id \
+  --ssh-keys $ssh_key_id \
+  --identity-file $ssh_key_path \
+  --bootstrap \
+  --run-list $run_list
 result=$?
 set +x
 
@@ -130,9 +122,9 @@ if [ $result -ne 0 ]; then
   knife digital_ocean droplet destroy -S $droplet_id
   # Remove node and client from Chef Server
   echo_color "Deleting Chef client..."
-  knife client delete deis-controller
+  knife client delete deis-controller -y
   echo_color "Deleting Chef node..."
-  knife node delete deis-controller
+  knife node delete deis-controller -y
 else
   echo_color "Knife bootstrap successful."
   # Need Chef admin permission in order to add and remove nodes and clients

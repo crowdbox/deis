@@ -17,6 +17,8 @@ Subcommands, use ``crowdbox help [subcommand]`` to learn more::
   builds        manage builds created using `crowdbox deploy`
   releases      manage releases of an application
 
+  perms         manage permissions for shared apps and formations
+
 Developer shortcut commands::
 
   create        create a new application
@@ -39,7 +41,6 @@ from threading import Thread
 import json
 import os.path
 import random
-import re
 import socket
 import subprocess
 import sys
@@ -858,6 +859,88 @@ and pass it with `--oauth-key=`: goto http://crowdbox.es/get_oauth_token""")
             self.containers_list({})
         else:
             raise ResponseError(response)
+
+    def perms(self, args):
+        """
+        Valid commands for perms:
+
+        perms:list            list permissions granted on an app or formation
+        perms:create          create a new permission for a user
+        perms:delete          delete a permission for a user
+
+        Use `deis help perms:[command]` to learn more
+        """
+        # perms:transfer        transfer ownership of an app or formation
+        return self.perms_list(args)
+
+    def perms_list(self, args):
+        """
+        List all users with permission to use an app, or list all users
+        with system administrator privileges.
+
+        Usage: deis perms:list [--app=<app>|--admin]
+        """
+        app, url = self._parse_perms_args(args)
+        response = self._dispatch('get', url)
+        if response.status_code == requests.codes.ok:
+            print(json.dumps(response.json(), indent=2))
+        else:
+            raise ResponseError(response)
+
+    def perms_create(self, args):
+        """
+        Give another user permission to use an app, or give another user
+        system administrator privileges.
+
+        Usage: deis perms:create <username> [--app=<app>|--admin]
+        """
+        app, url = self._parse_perms_args(args)
+        username = args.get('<username>')
+        body = {'username': username}
+        if app:
+            msg = "Adding {} to {} collaborators... ".format(username, app)
+        else:
+            msg = "Adding {} to system administrators... ".format(username)
+        sys.stdout.write(msg)
+        sys.stdout.flush()
+        response = self._dispatch('post', url, json.dumps(body))
+        if response.status_code == requests.codes.created:
+            print('done')
+        else:
+            raise ResponseError(response)
+
+    def perms_delete(self, args):
+        """
+        Revoke another user's permission to use an app, or revoke another
+        user's system administrator privileges.
+
+        Usage: deis perms:delete <username> [--app=<app>|--admin]
+        """
+        app, url = self._parse_perms_args(args)
+        username = args.get('<username>')
+        url = "{}/{}".format(url, username)
+        if app:
+            msg = "Removing {} from {} collaborators... ".format(username, app)
+        else:
+            msg = "Remove {} from system administrators... ".format(username)
+        sys.stdout.write(msg)
+        sys.stdout.flush()
+        response = self._dispatch('delete', url)
+        if response.status_code == requests.codes.no_content:
+            print('done')
+        else:
+            raise ResponseError(response)
+
+    def _parse_perms_args(self, args):
+        app = args.get('--app'),
+        admin = args.get('--admin')
+        if admin:
+            app = None
+            url = '/api/admin/perms'
+        else:
+            app = app[0] or self._session.app
+            url = "/api/apps/{}/perms".format(app)
+        return app, url
 
     def releases(self, args):
         """

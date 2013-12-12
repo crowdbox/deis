@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Usage: ./provision-vagrant-controller.sh
+#
 
 function echo_color {
   echo -e "\033[1m$1\033[0m"
@@ -114,6 +117,9 @@ if [ $? -eq 0 ]; then
   echo_color "Site object updated."
 fi
 popd
+
+echo_color "Setting devmode flag on 'deis-controller'..."
+knife exec -E 'nodes.transform("name:deis-controller") {|n| n.normal_attrs["deis"]["devmode"] = true; n.save }'
 
 # Need Chef admin permission in order to add and remove nodes and clients
 echo -e "\033[35mPlease ensure that \"deis-controller\" is added to the Chef \"admins\" group.\033[0m"

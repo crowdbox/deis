@@ -15,10 +15,12 @@ from celery.canvas import group
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.dispatch.dispatcher import Signal
 from django.utils.encoding import python_2_unicode_compatible
+from guardian.shortcuts import get_users_with_perms
 from json_field.fields import JSONField  # @UnusedImport
 
 from api import fields, tasks
@@ -82,7 +84,6 @@ class Key(UuidAuditedModel):
         self.owner.publish()
 
 
-@python_2_unicode_compatible
 class ProviderManager(models.Manager):
     """Manage database interactions for :class:`Provider`."""
 
@@ -125,7 +126,6 @@ class Provider(UuidAuditedModel):
         return "{}-{}".format(self.id, self.get_type_display())
 
 
-@python_2_unicode_compatible
 class FlavorManager(models.Manager):
     """Manage database interactions for :class:`Flavor`."""
 
@@ -186,19 +186,34 @@ class Formation(UuidAuditedModel):
                 'nodes': self.nodes}
 
     def build(self):
-        tasks.build_formation.delay(self).wait()
+        return
 
     def destroy(self, *args, **kwargs):
-        tasks.destroy_formation.delay(self).wait()
+        for app in self.app_set.all():
+            app.destroy()
+        node_tasks = [tasks.destroy_node.si(n) for n in self.node_set.all()]
+        layer_tasks = [tasks.destroy_layer.si(l) for l in self.layer_set.all()]
+        group(node_tasks).apply_async().join()
+        group(layer_tasks).apply_async().join()
+        CM.purge_formation(self.flat())
+        self.delete()
+        tasks.converge_controller.apply_async().wait()
 
     def publish(self):
         data = self.calculate()
         CM.publish_formation(self.flat(), data)
         return data
 
-    def converge(self, **kwargs):
+    def converge(self, controller=False, **kwargs):
         databag = self.publish()
-        tasks.converge_formation.delay(self).wait()
+        nodes = self.node_set.all()
+        subtasks = []
+        for n in nodes:
+            subtask = tasks.converge_node.si(n)
+            subtasks.append(subtask)
+        if controller is True:
+            subtasks.append(tasks.converge_controller.si())
+        group(*subtasks).apply_async().join()
         return databag
 
     def calculate(self):
@@ -291,7 +306,6 @@ class Layer(UuidAuditedModel):
         return tasks.destroy_layer.delay(self).wait()
 
 
-@python_2_unicode_compatible
 class NodeManager(models.Manager):
 
     def new(self, formation, layer, fqdn=None):
@@ -448,6 +462,9 @@ class App(UuidAuditedModel):
 
     containers = JSONField(default='{}', blank=True)
 
+    class Meta:
+        permissions = (('use_app', 'Can use app'),)
+
     def __str__(self):
         return self.id
 
@@ -463,10 +480,11 @@ class App(UuidAuditedModel):
         Release.objects.create(
             version=1, owner=self.owner, app=self, config=config, build=build)
         self.formation.publish()
-        tasks.build_app.delay(self).wait()
 
     def destroy(self):
-        tasks.destroy_app.delay(self).wait()
+        CM.purge_app(self.flat())
+        self.delete()
+        self.formation.publish()
 
     def publish(self):
         """Publish the application to configuration management"""
@@ -504,10 +522,10 @@ class App(UuidAuditedModel):
         else:
             for n in self.formation.node_set.filter(layer__proxy=True):
                 d['domains'].append(n.fqdn)
-        # TODO: add proper sharing and access controls
-        d['users'] = {}
-        for u in (self.owner.username,):
-            d['users'][u] = 'admin'
+        # add proper sharing and access controls
+        d['users'] = {self.owner.username: 'owner'}
+        for u in (get_users_with_perms(self)):
+            d['users'][u.username] = 'user'
         return d
 
     def logs(self):
@@ -520,6 +538,7 @@ class App(UuidAuditedModel):
 
     def run(self, command):
         """Run a one-off command in an ephemeral app container."""
+        # TODO: add support for interactive shell
         nodes = self.formation.node_set.filter(layer__runtime=True).order_by('?')
         if not nodes:
             raise EnvironmentError('No nodes available to run command')
@@ -528,13 +547,12 @@ class App(UuidAuditedModel):
         # prepare ssh command
         version = release.version
         docker_args = ' '.join(
-            ['-v',
-             '/opt/deis/runtime/slugs/{app_id}-{version}/app:/app'.format(**locals()),
-             release.build.image])
-        base_cmd = "export HOME=/app; cd /app && for profile in " \
-                   "`find /app/.profile.d/*.sh -type f`; do . $profile; done"
-        command = "/bin/sh -c '{base_cmd} && {command}'".format(**locals())
-        command = "sudo docker run {docker_args} {command}".format(**locals())
+            ['-a', 'stdout', '-a', 'stderr', '-rm',
+             '-v', '/opt/deis/runtime/slugs/{app_id}-v{version}:/app'.format(**locals()),
+             'deis/slugrunner'])
+        env_args = ' '.join(["-e '{k}={v}'".format(**locals())
+                             for k, v in release.config.values.items()])
+        command = "sudo docker run {env_args} {docker_args} {command}".format(**locals())
         return node.run(command)
 
     def scaleoff(self):
@@ -572,7 +590,6 @@ class App(UuidAuditedModel):
             app.save()
 
 
-@python_2_unicode_compatible
 class ContainerManager(models.Manager):
 
     def scale(self, app, structure, **kwargs):
@@ -761,14 +778,14 @@ class Build(UuidAuditedModel):
         username = push.pop('username').split('_')[0]
         # retrieve the user and app instances
         user = User.objects.get(username=username)
-        app = App.objects.get(owner=user, id=push.pop('app'))
+        app = App.objects.get(id=push.pop('app'))
         # merge the push with the required model instances
         push['owner'] = user
         push['app'] = app
         # create the build
         new_build = cls.objects.create(**push)
         # send a release signal
-        release_signal.send(sender=push, build=new_build, app=app, user=user)
+        release_signal.send(sender=user, build=new_build, app=app, user=user)
         # see if we need to scale an initial web container
         if len(app.formation.node_set.filter(layer__runtime=True)) > 0 and \
            len(app.container_set.filter(type='web')) < 1:
@@ -854,10 +871,15 @@ def _user_publish(self):
     CM.publish_user(self.flat(), self.calculate())
 
 
+def _user_purge(self):
+    CM.purge_user(self.flat())
+
+
 # attach to built-in django user
 User.flat = _user_flat
 User.calculate = _user_calculate
 User.publish = _user_publish
+User.purge = _user_purge
 
 # define update/delete callbacks for synchronizing
 # models with the configuration management backend
@@ -872,8 +894,14 @@ def _publish_user_to_cm(**kwargs):
         return
     kwargs['instance'].publish()
 
+
+def _purge_user_from_cm(**kwargs):
+    kwargs['instance'].purge()
+
+
 # use django signals to synchronize database updates with
 # the configuration management backend
 post_save.connect(_publish_to_cm, sender=App, dispatch_uid='api.models')
 post_save.connect(_publish_to_cm, sender=Formation, dispatch_uid='api.models')
 post_save.connect(_publish_user_to_cm, sender=User, dispatch_uid='api.models')
+post_delete.connect(_purge_user_from_cm, sender=User, dispatch_uid='api.models')
