@@ -121,7 +121,7 @@ class Session(requests.Session):
         if url is None:
             raise EnvironmentError('No Github remotes found.')
         pieces = url.split('/')
-        owner = pieces[-2]
+        owner = pieces[-2].split(':')[-1]
         repo = pieces[-1].replace('.git', '')
         app_raw = owner + '/' + repo
         app_name = app_raw.replace('-', '--').replace('/', '-')

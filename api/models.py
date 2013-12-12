@@ -468,6 +468,16 @@ class App(UuidAuditedModel):
     def __str__(self):
         return self.id
 
+    def github_uri(self):
+        """
+        TODO: Need to look at what happens to Github URIs that already have double hyphens in them.
+        """
+        path = self.id\
+            .replace('--', '*placeholder*')\
+            .replace('-', '/')\
+            .replace('*placeholder*', '-')
+        return 'https://github.com/{}.git'.format(path)
+
     def flat(self):
         return {'id': self.id,
                 'formation': self.formation.id,

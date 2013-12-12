@@ -82,13 +82,13 @@ Powered by Deis!
 
 	<h2>All applications currently installed on Crowdbox</h2>
 	  <ul>
+	    {% for app in apps %}
 	  	<li>
-		    {% for app in apps %}
 		      <a href="{% url 'web.views.app' app.id %}">
 		        {{ app.id }}
 		      </a>
-		    {% endfor %}
 	    </li>
+	    {% endfor %}
 	  </ul>
 </div>
 {% endblock %}
