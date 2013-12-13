@@ -49,6 +49,7 @@ ssh_port="22"
 knife data bag create deis-users 2>/dev/null
 knife data bag create deis-formations 2>/dev/null
 knife data bag create deis-apps 2>/dev/null
+knife data bag create deis-global hostname 2>/dev/null
 
 # Boot the deis-controller VM
 echo_color "Booting $node_name with 'vagrant up'"

@@ -158,13 +158,9 @@ def converge_controller():
 
     :returns: the output of the convergence command, in this case `sudo chef-client`
     """
-    try:
-        # we only need to run the gitosis recipe to update `git push` ACLs
-        return subprocess.check_output(['sudo', 'chef-client', '-o', 'recipe[deis::gitosis]'])
-    except subprocess.CalledProcessError as err:
-        print(err)
-        print(err.output)
-        raise err
+    # Deis only runs the gitosis recipe. Seeing as Crowdbox doesn't use gitosis then there's
+    # nothing to do here.
+    pass
 
 
 def converge_node(node):

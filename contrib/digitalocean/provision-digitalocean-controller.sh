@@ -96,6 +96,7 @@ ssh_key_id=$(knife digital_ocean sshkey list | grep "$key_name" | awk '{print $1
 knife data bag create deis-users 2>/dev/null
 knife data bag create deis-formations 2>/dev/null
 knife data bag create deis-apps 2>/dev/null
+knife data bag create deis-global hostname 2>/dev/null
 
 # trigger digital ocean instance bootstrap
 echo_color "Provisioning $node_name with knife digital_ocean..."
