@@ -8,6 +8,8 @@ from api.models import Formation
 from web.forms import CaptchaForm
 from django.conf import settings
 
+import time
+
 
 def home(request):
     """The home page with a list of apps on"""
@@ -32,6 +34,7 @@ def app(request, id):
         # check the input
         if form.is_valid():
             app.addCredits(settings.CREDITS_PER_CAPTCHA)
+            time.sleep(1)  # Gotta be a better way of waiting for the transaction to complete...
     else:
         form = CaptchaForm()
 
@@ -41,4 +44,6 @@ def app(request, id):
         'containers': app.container_set.all(),
         'form': form,
         'settings': settings,
+        'pool_cut': "{}%".format(settings.POOL_CUT * 100),
+        'crowdbox_cut': "{}%".format(settings.CROWDBOX_CUT * 100),
     })

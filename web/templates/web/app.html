@@ -30,14 +30,22 @@
     </form>
     <span class="span6">
       <p>
-        When Crowdbox is stable this will be the paymanet form. But right now Crowdbox is free and
+        When Crowdbox is stable this will be the payment form. But right now Crowdbox is free and
         this little captcha is all you need to submit in order to get more credits. For every correct
-        captcha {{ settings.CREDITS_PER_CAPTCHA }} credits will be added to the app. That is enought to run 1 dyno for 12 hours.
+        captcha {{ settings.CREDITS_PER_CAPTCHA }} credits will be added to the app. That is enough to run 1 dyno for 12 hours.
       </p>
       <p>
         Most importantly this form is public to everyone in the world and will remain so even when
         Crowdbox is out of beta. This is the whole point of Crowdbox; <em>anyone</em> can contribute
         to the upkeep of the app.
+      </p>
+
+      <p>
+        Not all of your donation will go straight to the app. Currently {{ pool_cut }}
+        is shared with the rest of the apps, so they each get a bit of extra uptime. And 
+        {{ crowdbox_cut }} goes to Crowdbox itself to pay server costs and one day potentially
+        pay someone to manage the Crowdbox infrastructure. All of Crowdbox's donations and costs will
+        be public.
       </p>
     </span>
   </div>
