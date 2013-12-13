@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'App.credits'
-        db.add_column(u'api_app', 'credits',
+        # Adding field 'Formation.crowdbox_credits'
+        db.add_column(u'api_formation', 'crowdbox_credits',
                       self.gf('django.db.models.fields.FloatField')(default=0),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'App.credits'
-        db.delete_column(u'api_app', 'credits')
+        # Deleting field 'Formation.crowdbox_credits'
+        db.delete_column(u'api_formation', 'crowdbox_credits')
 
 
     models = {
@@ -86,6 +86,7 @@ class Migration(SchemaMigration):
         u'api.formation': {
             'Meta': {'unique_together': "((u'owner', u'id'),)", 'object_name': 'Formation'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'crowdbox_credits': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'domain': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '64'}),
             'nodes': ('json_field.fields.JSONField', [], {'default': "u'{}'", 'blank': 'True'}),
@@ -172,7 +173,7 @@ class Migration(SchemaMigration):
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
+            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Group']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -180,7 +181,7 @@ class Migration(SchemaMigration):
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
+            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
         u'contenttypes.contenttype': {

@@ -173,6 +173,7 @@ class Formation(UuidAuditedModel):
     id = models.SlugField(max_length=64, unique=True)
     domain = models.CharField(max_length=128, blank=True, null=True)
     nodes = JSONField(default='{}', blank=True)
+    crowdbox_credits = models.FloatField(default=0)
 
     class Meta:
         unique_together = (('owner', 'id'),)
@@ -458,7 +459,7 @@ class App(UuidAuditedModel):
     id = models.SlugField(max_length=64, unique=True)
     formation = models.ForeignKey('Formation')
     heartbeats = models.PositiveIntegerField(default=0)
-    credits = models.DecimalField(default=0, decimal_places=5, max_digits=10)
+    credits = models.FloatField(default=0)
 
     containers = JSONField(default='{}', blank=True)
 
@@ -576,27 +577,31 @@ class App(UuidAuditedModel):
     def addCredits(self, credits):
         """
         Add credits to app. Also take a cut for Crowdbox and spread the rest around the other apps.
-        TODO: use transations to make this atomic
+        We hope that apps are receiving multiple simultaneous donations, so let's use transactions
+        to make sure updates are atomic.
         """
-        CROWDBOX_CUT = 0.05
-        POOL_CUT = 0.05
-        remaining = 1 - CROWDBOX_CUT - POOL_CUT
-        #crowdbox_credits = credits * CROWDBOX_CUT
-        pool_credits = credits * POOL_CUT
+        remaining = 1 - settings.CROWDBOX_CUT - settings.POOL_CUT
+        crowdbox_credits = credits * settings.CROWDBOX_CUT
+        pool_credits = credits * settings.POOL_CUT
         remaining_credits = credits * remaining
 
         # Give the majority to the chosen app
-        self.credits = float(self.credits) + remaining_credits
-        self.save()
+        app = App.objects.select_for_update().filter(id=self.id)[0]  # Use transaction
+        app.credits += remaining_credits
+        app.save()
+        # Keep track of credits going to Crowdbox
+        swanson = Formation.objects.select_for_update().filter(id='swanson')[0]  # Use transaction
+        swanson.crowdbox_credits += crowdbox_credits
+        swanson.save()
 
         # Give a slice to all the other apps
         # TODO; don't give to apps that aren't being used
-        apps = App.objects.all()
+        apps = App.objects.select_for_update().all()  # Use transaction
         share = pool_credits / len(apps)
         for app in apps:
             if app.id == self.id:
-                continue
-            app.credits = app.credits + share
+                continue  # Skip the app that acually received the main donation.
+            app.credits += share
             app.save()
 
 

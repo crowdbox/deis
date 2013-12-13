@@ -306,6 +306,15 @@ PROVIDER_MODULES = ('mock',)
 # EMAIL_HOST_USER = 'foo'
 # EMAIL_HOST_PASSWORD = 'bar'
 
+# How much of a cut Crowdbox takes of all donations.
+CROWDBOX_CUT = 0.05
+# How much of a cut other apps take of each donation.
+POOL_CUT = 0.05
+# How many credits are added to an app each time someone donates via the image captcha.
+CREDITS_PER_CAPTCHA = 720
+# The number of credits taken from Crowdbox and given to an app when it is first created.
+APP_INITIAL_CREDITS = 60
+
 # Set sensitive environment variables: passwords, secrets, etc.
 # These are values that can't be committed to the deis or deis-cookbook repo.
 try:

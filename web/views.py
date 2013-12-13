@@ -4,15 +4,19 @@ View classes for presenting Deis web pages.
 
 from django.shortcuts import render
 from api.models import App
+from api.models import Formation
 from web.forms import CaptchaForm
+from django.conf import settings
 
 
 def home(request):
     """The home page with a list of apps on"""
     apps = App.objects.all()
+    formation = Formation.objects.get(id='swanson')
     return render(request, 'web/home.html', {
         'page': 'home',
         'apps': apps,
+        'formation': formation,
     })
 
 
@@ -27,7 +31,7 @@ def app(request, id):
         # Validate the form: the captcha field will automatically
         # check the input
         if form.is_valid():
-            app.addCredits(60)
+            app.addCredits(settings.CREDITS_PER_CAPTCHA)
     else:
         form = CaptchaForm()
 
@@ -36,4 +40,5 @@ def app(request, id):
         'app': app,
         'containers': app.container_set.all(),
         'form': form,
+        'settings': settings,
     })

@@ -485,6 +485,8 @@ class CrowdboxClient(object):
             app = self._session.app
         url = "{}/api/apps/{}/deploy".format(CROWDBOX_API_URL, app)
         secret = self._session.get(url, stream=True).content.replace('"', '')
+        if "Not found" in secret:
+            raise ResponseError("App doesn't exist. Perhaps you need to do `crowdbox create` first?")
         cmd = "BUILD\n{}".format(secret)
         _rendevous(cmd)
 

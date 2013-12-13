@@ -15,17 +15,31 @@
   </div>
 
   <div class="row-fluid well">
-    <strong>Donation form:</strong>
-    <form action="" method="post" class="span12">
-        {% csrf_token %}
+    <form action="" method="post" class="span6">
+      <div>
+        <strong>Donation form:</strong>
+      </div>
+      {% csrf_token %}
 
-        {{form.captcha.errors}}
-        {{form.captcha}}
+      {{form.captcha.errors}}
+      {{form.captcha}}
 
-        <div>
-            <input type="submit" value="Submit" />
-        </div>
+      <div>
+        <input type="submit" value="Submit" />
+      </div>
     </form>
+    <span class="span6">
+      <p>
+        When Crowdbox is stable this will be the paymanet form. But right now Crowdbox is free and
+        this little captcha is all you need to submit in order to get more credits. For every correct
+        captcha {{ settings.CREDITS_PER_CAPTCHA }} credits will be added to the app. That is enought to run 1 dyno for 12 hours.
+      </p>
+      <p>
+        Most importantly this form is public to everyone in the world and will remain so even when
+        Crowdbox is out of beta. This is the whole point of Crowdbox; <em>anyone</em> can contribute
+        to the upkeep of the app.
+      </p>
+    </span>
   </div>
 
   <div class="row-fluid well">
@@ -55,7 +69,7 @@
           {% endfor %}
         </dl>
       {% else %}
-        <strong>This is app is not currently running</strong>
+        <strong>This app is not currently running</strong>
       {% endif %}
     </div>
   </div>
