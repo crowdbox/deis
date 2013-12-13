@@ -562,9 +562,7 @@ class CrowdboxClient(object):
         --password=PASSWORD    Github password
         --oauth-key=OAUTH_KEY  OAuth key obtained from web flow
         """
-        print("""Crowdbox uses your Github identity to authenticate. Crowdbox does not store your
-Github password. If you feel safer not providing your password you can generate an OAuth token
-and pass it with `--oauth-key=`: goto http://crowdbox.es/get_oauth_token""")
+        print("""Crowdbox uses your Github identity to authenticate. Crowdbox does not store your Github password.""")
         oauth_key = args.get('--oauth-key')
         if oauth_key:
             # TODO: not implemeted on the API yet.
