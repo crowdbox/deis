@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 """
-The Crowdbox command-line client issues API calls to the a Deis-Crowdbox controller.
+The Danabox command-line client issues API calls to the a Deis-Danabox controller.
 
-Usage: crowdbox <command> [<args>...]
+Usage: danabox <command> [<args>...]
 
 Auth commands::
 
-  login         login to a Crowdbox with your Github ID
-  logout        logout from Crowdbox
+  login         login to a Danabox with your Github ID
+  logout        logout from Danabox
 
-Subcommands, use ``crowdbox help [subcommand]`` to learn more::
+Subcommands, use ``danabox help [subcommand]`` to learn more::
 
   apps          manage applications used to provide services
   containers    manage containers used to handle requests and jobs
   config        manage environment variables that define app config
-  builds        manage builds created using `crowdbox deploy`
+  builds        manage builds created using `danabox deploy`
   releases      manage releases of an application
 
   perms         manage permissions for shared apps and formations
@@ -54,7 +54,7 @@ from docopt import DocoptExit
 import requests
 
 __version__ = '0.0.1'
-CROWDBOX_API_URL = os.environ.get('CROWDBOX_API_URL') or 'http://crowdbox.io'
+DANABOX_API_URL = os.environ.get('DANABOX_API_URL') or 'http://danabox.io'
 
 
 class Session(requests.Session):
@@ -65,10 +65,10 @@ class Session(requests.Session):
     def __init__(self):
         super(Session, self).__init__()
         self.trust_env = False
-        cookie_file = os.path.expanduser('~/.crowdbox/cookies.txt')
+        cookie_file = os.path.expanduser('~/.danabox/cookies.txt')
         cookie_dir = os.path.dirname(cookie_file)
         self.cookies = MozillaCookieJar(cookie_file)
-        # Create the $HOME/.crowdbox dir if it doesn't exist
+        # Create the $HOME/.danabox dir if it doesn't exist
         if not os.path.isdir(cookie_dir):
             os.mkdir(cookie_dir, 0700)
         # Load existing cookies if the cookies.txt exists
@@ -104,7 +104,7 @@ class Session(requests.Session):
 
         The application is determined by parsing `git remote -v` output for the origin remote.
 
-        Because Crowdbox only allows deployment of public Github repos we can create unique app
+        Because Danabox only allows deployment of public Github repos we can create unique app
         names from a combination of the Github user's name and the repo name. Eg;
         'git@github.com:opdemand/example-ruby-sinatra.git' becomes 'opdemand-example--ruby--sinatra'
 
@@ -150,11 +150,11 @@ class Settings(dict):
     """
     Settings backed by a file in the user's home directory
 
-    On init, settings are loaded from ~/.crowdbox/client.yaml
+    On init, settings are loaded from ~/.danabox/client.yaml
     """
 
     def __init__(self):
-        path = os.path.expanduser('~/.crowdbox')
+        path = os.path.expanduser('~/.danabox')
         if not os.path.exists(path):
             os.mkdir(path)
         self._path = os.path.join(path, 'client.yaml')
@@ -295,7 +295,7 @@ def trim(docstring):
 
 def _rendevous(command):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = urlparse.urlparse(CROWDBOX_API_URL).hostname
+    host = urlparse.urlparse(DANABOX_API_URL).hostname
     s.connect((host, 6315))
 
     s.sendall("{}\n\r\n".format(command))
@@ -312,9 +312,9 @@ class ResponseError(Exception):
     pass
 
 
-class CrowdboxClient(object):
+class DanaboxClient(object):
     """
-    A client which interacts with the Deis-Crowdbox controller.
+    A client which interacts with the Deis-Danabox controller.
     """
 
     def __init__(self):
@@ -324,10 +324,10 @@ class CrowdboxClient(object):
     def _dispatch(self, method, path, body=None,
                   headers={'content-type': 'application/json'}, **kwargs):
         """
-        Dispatch an API request to the active Deis-Crowdbox controller
+        Dispatch an API request to the active Deis-Danabox controller
         """
         func = getattr(self._session, method.lower())
-        controller = CROWDBOX_API_URL
+        controller = DANABOX_API_URL
         url = urlparse.urljoin(controller, path, **kwargs)
         response = func(url, data=body, headers=headers)
         return response
@@ -345,7 +345,7 @@ class CrowdboxClient(object):
         apps:run           run a command in an ephemeral app container
         apps:destroy       destroy an application
 
-        Use `crowdbox help [command]` to learn more
+        Use `danabox help [command]` to learn more
         """
         return self.apps_list(args)
 
@@ -353,7 +353,7 @@ class CrowdboxClient(object):
         """
         Calculate the application's JSON representation
 
-        Usage: crowdbox apps:calculate [--app=<app>]
+        Usage: danabox apps:calculate [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -372,7 +372,7 @@ class CrowdboxClient(object):
         """
         Create a new application
 
-        Usage: crowdbox apps:create
+        Usage: danabox apps:create
         """
         try:
             self._session.git_root()  # check for a git repository
@@ -403,7 +403,7 @@ class CrowdboxClient(object):
         """
         Destroy an application
 
-        Usage: crowdbox apps:destroy [--app=<id> --confirm=<confirm>]
+        Usage: danabox apps:destroy [--app=<id> --confirm=<confirm>]
         """
         app = args.get('--app')
         if not app:
@@ -441,7 +441,7 @@ class CrowdboxClient(object):
         """
         List applications visible to the current user
 
-        Usage: crowdbox apps:list
+        Usage: danabox apps:list
         """
         response = self._dispatch('get', '/api/apps')
         if response.status_code == requests.codes.ok:  # @UndefinedVariable
@@ -456,7 +456,7 @@ class CrowdboxClient(object):
         """
         Print info about the current application
 
-        Usage: crowdbox apps:info [--app=<app>]
+        Usage: danabox apps:info [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -478,15 +478,15 @@ class CrowdboxClient(object):
         Even though this command requires that you are inside a git repo to determine which app
         to deploy, the actual deployment is done on the Controller.
 
-        Usage: crowdbox apps:deploy  [--app=<app>]
+        Usage: danabox apps:deploy  [--app=<app>]
         """
         app = args.get('--app')
         if not app:
             app = self._session.app
-        url = "{}/api/apps/{}/deploy".format(CROWDBOX_API_URL, app)
+        url = "{}/api/apps/{}/deploy".format(DANABOX_API_URL, app)
         secret = self._session.get(url, stream=True).content.replace('"', '')
         if "Not found" in secret:
-            raise ResponseError("App doesn't exist. Perhaps you need to do `crowdbox create` first?")
+            raise ResponseError("App doesn't exist. Perhaps you need to do `danabox create` first?")
         cmd = "BUILD\n{}".format(secret)
         _rendevous(cmd)
 
@@ -494,7 +494,7 @@ class CrowdboxClient(object):
         """
         Open a URL to the application in a browser
 
-        Usage: crowdbox apps:open [--app=<app>]
+        Usage: danabox apps:open [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -520,7 +520,7 @@ class CrowdboxClient(object):
         """
         Retrieve the most recent log events
 
-        Usage: crowdbox apps:logs [--app=<app>]
+        Usage: danabox apps:logs [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -536,7 +536,7 @@ class CrowdboxClient(object):
         """
         Run a command inside an ephemeral app container
 
-        Usage: crowdbox apps:run <command>...
+        Usage: danabox apps:run <command>...
         """
         app = self._session.app
         body = {'command': ' '.join(sys.argv[2:])}
@@ -554,9 +554,9 @@ class CrowdboxClient(object):
 
     def auth_login(self, args):
         """
-        Login by authenticating against the Deis-Crowdbox Controller
+        Login by authenticating against the Deis-Danabox Controller
 
-        Usage: crowdbox auth:login [options]
+        Usage: danabox auth:login [options]
 
         Options:
 
@@ -564,7 +564,7 @@ class CrowdboxClient(object):
         --password=PASSWORD    Github password
         --oauth-key=OAUTH_KEY  OAuth key obtained from web flow
         """
-        print("""Crowdbox uses your Github identity to authenticate. Crowdbox does not store your Github password.""")
+        print("""Danabox uses your Github identity to authenticate. Danabox does not store your Github password.""")
         oauth_key = args.get('--oauth-key')
         if oauth_key:
             # TODO: not implemeted on the API yet.
@@ -577,7 +577,7 @@ class CrowdboxClient(object):
             if not password:
                 password = getpass('Github password: ')
             payload = {'username': username, 'password': password}
-        url = urlparse.urljoin(CROWDBOX_API_URL, '/api/auth/github')
+        url = urlparse.urljoin(DANABOX_API_URL, '/api/auth/github')
         response = self._session.post(url, data=payload, allow_redirects=False)
         if response.status_code == requests.codes.ok:  # @UndefinedVariable
             oauth_token = response.content.replace('"', '')
@@ -597,7 +597,7 @@ class CrowdboxClient(object):
         Just a convenience method to show your current Github token. Handy if you want to login
         with the deis client instead because it uses the token as the password.
 
-        Usage: crowdbox auth:show_token [options]
+        Usage: danabox auth:show_token [options]
 
         Options:
 
@@ -611,7 +611,7 @@ class CrowdboxClient(object):
         if not password:
             password = getpass('Github password: ')
         payload = {'username': username, 'password': password}
-        url = urlparse.urljoin(CROWDBOX_API_URL, '/api/auth/github')
+        url = urlparse.urljoin(DANABOX_API_URL, '/api/auth/github')
         token = self._session.post(url, data=payload, allow_redirects=False).content
         print("Your current Github token is: %s" % token)
 
@@ -619,7 +619,7 @@ class CrowdboxClient(object):
         """
         Cancel and remove the current account.
 
-        Usage: crowdbox auth:cancel
+        Usage: danabox auth:cancel
         """
         print('Please log in again in order to cancel this account')
         username = self.auth_login()
@@ -642,7 +642,7 @@ class CrowdboxClient(object):
         """
         headers = {}
         payload = {'username': username, 'password': oauth_token}
-        url = urlparse.urljoin(CROWDBOX_API_URL, '/api/auth/login/')
+        url = urlparse.urljoin(DANABOX_API_URL, '/api/auth/login/')
         # clear any cookies for the domain
         self._session.cookies.clear()
         # prime cookies for login
@@ -658,9 +658,9 @@ class CrowdboxClient(object):
 
     def auth_logout(self, args):
         """
-        Logout from the Deis-Crowdbox Controller and clear the user session
+        Logout from the Deis-Danabox Controller and clear the user session
 
-        Usage: crowdbox auth:logout
+        Usage: danabox auth:logout
         """
         self._dispatch('get', '/api/auth/logout/')
         self._session.cookies.clear()
@@ -674,7 +674,7 @@ class CrowdboxClient(object):
         builds:list        list build history for a formation
         builds:create      coming soon!
 
-        Use `crowdbox help [command]` to learn more
+        Use `danabox help [command]` to learn more
         """
         return self.builds_list(args)
 
@@ -682,7 +682,7 @@ class CrowdboxClient(object):
         """
         List build history for a formation
 
-        Usage: crowdbox builds:list [--app=<app>]
+        Usage: danabox builds:list [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -704,7 +704,7 @@ class CrowdboxClient(object):
         config:set         set environment variables for an app
         config:unset       unset environment variables for an app
 
-        Use `crowdbox help [command]` to learn more
+        Use `danabox help [command]` to learn more
         """
         return self.config_list(args)
 
@@ -712,7 +712,7 @@ class CrowdboxClient(object):
         """
         List environment variables for an application
 
-        Usage: crowdbox config:list [--app=<app>]
+        Usage: danabox config:list [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -735,7 +735,7 @@ class CrowdboxClient(object):
         """
         Set environment variables for an application
 
-        Usage: crowdbox config:set <var>=<value>... [--app=<app>]
+        Usage: danabox config:set <var>=<value>... [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -761,7 +761,7 @@ class CrowdboxClient(object):
         """
         Unset an environment variable for an application
 
-        Usage: crowdbox config:unset <key>... [--app=<app>]
+        Usage: danabox config:unset <key>... [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -793,7 +793,7 @@ class CrowdboxClient(object):
         containers:list        list application containers
         containers:scale       scale app containers (e.g. web=4 worker=2)
 
-        Use `crowdbox help [command]` to learn more
+        Use `danabox help [command]` to learn more
         """
         return self.containers_list(args)
 
@@ -801,7 +801,7 @@ class CrowdboxClient(object):
         """
         List containers servicing an application
 
-        Usage: crowdbox containers:list [--app=<app>]
+        Usage: danabox containers:list [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -832,9 +832,9 @@ class CrowdboxClient(object):
         """
         Scale an application's containers by type
 
-        Example: crowdbox containers:scale web=4 worker=2
+        Example: danabox containers:scale web=4 worker=2
 
-        Usage: crowdbox containers:scale <type=num>... [--app=<app>]
+        Usage: danabox containers:scale <type=num>... [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -950,7 +950,7 @@ class CrowdboxClient(object):
         releases:info        print information about a specific release
         releases:rollback    coming soon!
 
-        Use `crowdbox help [command]` to learn more
+        Use `danabox help [command]` to learn more
         """
         return self.releases_list(args)
 
@@ -958,7 +958,7 @@ class CrowdboxClient(object):
         """
         Print info about a particular release
 
-        Usage: crowdbox releases:info <version> [--app=<app>]
+        Usage: danabox releases:info <version> [--app=<app>]
         """
         version = args.get('<version>')
         app = args.get('--app')
@@ -975,7 +975,7 @@ class CrowdboxClient(object):
         """
         List release history for an application
 
-        Usage: crowdbox releases:list [--app=<app>]
+        Usage: danabox releases:list [--app=<app>]
         """
         app = args.get('--app')
         if not app:
@@ -1033,8 +1033,8 @@ def main():
     Create a client, parse the arguments received on the command line, and
     call the appropriate method on the client.
     """
-    cli = CrowdboxClient()
-    args = docopt(__doc__, version='Crowdbox CLI {}'.format(__version__),
+    cli = DanaboxClient()
+    args = docopt(__doc__, version='Danabox CLI {}'.format(__version__),
                   options_first=True)
     cmd = args['<command>']
     cmd, help_flag = parse_args(cmd)
@@ -1049,7 +1049,7 @@ def main():
     if hasattr(cli, cmd):
         method = getattr(cli, cmd)
     else:
-        raise DocoptExit('Found no matching command, try `crowdbox help`')
+        raise DocoptExit('Found no matching command, try `danabox help`')
     # re-parse docopt with the relevant docstring unless it needs sys.argv
     if cmd not in ('apps_run',):
         docstring = trim(getattr(cli, cmd).__doc__)

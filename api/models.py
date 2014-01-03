@@ -173,7 +173,7 @@ class Formation(UuidAuditedModel):
     id = models.SlugField(max_length=64, unique=True)
     domain = models.CharField(max_length=128, blank=True, null=True)
     nodes = JSONField(default='{}', blank=True)
-    crowdbox_credits = models.FloatField(default=0)
+    danabox_credits = models.FloatField(default=0)
 
     class Meta:
         unique_together = (('owner', 'id'),)
@@ -576,12 +576,12 @@ class App(UuidAuditedModel):
 
     def addCredits(self, credits):
         """
-        Add credits to app. Also take a cut for Crowdbox and spread the rest around the other apps.
+        Add credits to app. Also take a cut for Danabox and spread the rest around the other apps.
         We hope that apps are receiving multiple simultaneous donations, so let's use transactions
         to make sure updates are atomic.
         """
-        remaining = 1 - settings.CROWDBOX_CUT - settings.POOL_CUT
-        crowdbox_credits = credits * settings.CROWDBOX_CUT
+        remaining = 1 - settings.DANABOX_CUT - settings.POOL_CUT
+        danabox_credits = credits * settings.DANABOX_CUT
         pool_credits = credits * settings.POOL_CUT
         remaining_credits = credits * remaining
 
@@ -589,9 +589,9 @@ class App(UuidAuditedModel):
         app = App.objects.select_for_update().filter(id=self.id)[0]  # Use transaction
         app.credits += remaining_credits
         app.save()
-        # Keep track of credits going to Crowdbox
+        # Keep track of credits going to Danabox
         swanson = Formation.objects.select_for_update().filter(id='swanson')[0]  # Use transaction
-        swanson.crowdbox_credits += crowdbox_credits
+        swanson.danabox_credits += danabox_credits
         swanson.save()
 
         # Give a slice to all the other apps

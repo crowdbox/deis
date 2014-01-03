@@ -1,35 +1,35 @@
-# Crowdbox
+# Danabox
 
-Crowdbox is a Heroku-inspired hosting platform. The difference being that each app is funded
+Danabox is a Heroku-inspired hosting platform. The difference being that each app is funded
 by donations in the style of Wikipedia. Because of its donation-based funding model only public
 Github repositories can be hosted on it.
 
-[Crowdbox Homepage](http://crowdbox.io)
+[Danabox Homepage](http://danabox.io)
 
-Crowdbox is built on [Deis](http://deis.io/).
+Danabox is built on [Deis](http://deis.io/).
 
 Getting Started
 ---------------
 
-* Install the Crowdbox client using [pip](http://www.pip-installer.org/en/latest/installing.html):
+* Install the Danabox client using [pip](http://www.pip-installer.org/en/latest/installing.html):
 
 ```
-$ pip install crowdbox
+$ pip install danabox
 ```
 
 * Go to the local version of your Github repository:
 
 ```
 $ cd <my-application-repo>
-$ crowdbox create
+$ danabox create
 Creating application... done, created opdemand-example--ruby--sinatra
 ```
 
-* Use `crowdbox deploy` to deploy your application.
+* Use `danabox deploy` to deploy your application.
 _NB. This step will eventually be added to a `git push` hook_
 
 ```
-$ crowdbox deploy
+$ danabox deploy
 From https://github.com/opdemand/example-ruby-sinatra
  * branch            master     -> FETCH_HEAD
 Already up-to-date.
@@ -53,22 +53,22 @@ Already up-to-date.
 -----> Compiled slug size: 11.5 MB
        Launching... done, v4
 
------> opdemand-example--ruby--sinatra deployed to Crowdbox
-       http://opdemand-example--ruby--sinatra.crowdbox.es
+-----> opdemand-example--ruby--sinatra deployed to Danabox
+       http://opdemand-example--ruby--sinatra.danabox.es
 
 -----> Donation page available at:
-       http://crowdbox.io/app/opdemand-example--ruby--sinatra
+       http://danabox.io/app/opdemand-example--ruby--sinatra
 
-       To learn more, use `deis help` or visit http://crowdbox.io
+       To learn more, use `deis help` or visit http://danabox.io
 
-$ curl -s http://opdemand-example--ruby--sinatra.crowdbox.es
+$ curl -s http://opdemand-example--ruby--sinatra.danabox.es
 Powered by Deis!
 ```
 
 License
 -------
 
-Copyright 2013, Crowdbox
+Copyright 2013, Danabox
 
 Licensed under the Apache License, Version 2.0 (the 'License'); you may not
 use this file except in compliance with the License. You may obtain a copy of

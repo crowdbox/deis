@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Install the Crowdbox command-line client."""
+"""Install the Dānabox command-line client."""
 
 
 try:
@@ -13,7 +13,7 @@ except ImportError:
 try:
     LONG_DESCRIPTION = open('README.rst').read()
 except IOError:
-    LONG_DESCRIPTION = 'Crowdbox command-line client'
+    LONG_DESCRIPTION = 'Dānabox command-line client'
 
 try:
     APACHE_LICENSE = open('LICENSE').read()
@@ -24,20 +24,20 @@ KWARGS = {}
 if USE_SETUPTOOLS:
     KWARGS = {
         'install_requires': ['docopt', 'PyYAML', 'requests'],
-        'entry_points': {'console_scripts': ['crowdbox = crowdbox:main']},
+        'entry_points': {'console_scripts': ['danabox = danabox:main']},
     }
 else:
     KWARGS = {'scripts': ['deis']}
 
 
 # pylint: disable=W0142
-setup(name='crowdbox',
+setup(name='danabox',
       version='0.0.3',
       license=APACHE_LICENSE,
-      description='Command-line Client for Crowdbox',
+      description='Command-line Client for Dānabox',
       author='Tom Buckley-Houston',
       author_email='tom@tombh.co.uk',
-      url='http://crowdbox.io',
+      url='http://danabox.io',
       keywords=[
           'PaaS', 'cloud', 'heroku',
       ],
@@ -54,7 +54,7 @@ setup(name='crowdbox',
           'Topic :: Internet',
           'Topic :: System :: Systems Administration',
       ],
-      py_modules=['crowdbox'],
+      py_modules=['danabox'],
       data_files=[
           ('.', ['README.rst']),
       ],

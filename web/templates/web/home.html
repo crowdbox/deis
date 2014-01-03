@@ -1,48 +1,48 @@
 {% extends "web/base.html" %}
 {% load humanize %}
 
-{% block title %}Crowdbox{% endblock %}
+{% block title %}Dānabox{% endblock %}
 
 {% block content %}
 <div class="green">
-  <h1>Crowdbox</h1>
+  <h1>Dānabox</h1>
 
   <p><em>Currently in private beta. Please don't tell anyone else about it.</em></p>
 
 	<p>
-		Crowdbox is a Heroku-inspired hosting platform. The difference being that each app is funded
+		Dānabox is a Heroku-inspired hosting platform. The difference being that each app is funded
 		by donations in the style of Wikipedia. Because of its donation-based funding model only public
 		Github repositories can be hosted on it.
 	</p>
 
-	<p>Crowdbox is built on <a href="http://deis.io">Deis</a>.</p>
+	<p>Dānabox is built on <a href="http://deis.io">Deis</a>.</p>
 
 	<h2>Getting Started</h2>
 
 	<ul>
 		<li>
-			Install the Crowdbox client using <a href="http://www.pip-installer.org/en/latest/installing.html">pip</a>:
-			<pre>$ pip install crowdbox</pre>
+			Install the Dānabox client using <a href="http://www.pip-installer.org/en/latest/installing.html">pip</a>:
+			<pre>$ pip install danabox</pre>
 		</li>
 
 		<li>
 			Login using your Github credentials:
-			<pre>$ crowdbox login</pre>
+			<pre>$ danabox login</pre>
 		</li>
 
 		<li>
 			Go to the local version of your Github repository:
 			<pre>
 $ cd <my-application-repo>
-$ crowdbox create
+$ danabox create
 Creating application... done, created opdemand-example--ruby--sinatra
 			</pre>
 		</li>
 
 		<li>
-			Use `crowdbox deploy` to deploy your application:
+			Use `danabox deploy` to deploy your application:
 			<pre>
-$ crowdbox deploy
+$ danabox deploy
 From https://github.com/opdemand/example-ruby-sinatra
  * branch            master     -> FETCH_HEAD
 Already up-to-date.
@@ -66,23 +66,23 @@ Already up-to-date.
 -----> Compiled slug size: 11.5 MB
        Launching... done, v4
 
------> opdemand-example--ruby--sinatra deployed to Crowdbox
-       http://opdemand-example--ruby--sinatra.crowdbox.es
+-----> opdemand-example--ruby--sinatra deployed to Dānabox
+       http://opdemand-example--ruby--sinatra.danabox.es
 
 -----> Donation page available at:
-       http://crowdbox.io/app/opdemand-example--ruby--sinatra
+       http://danabox.io/app/opdemand-example--ruby--sinatra
 
-       To learn more, use `deis help` or visit http://crowdbox.io
+       To learn more, use `deis help` or visit http://danabox.io
 
-$ curl -s http://opdemand-example--ruby--sinatra.crowdbox.es
+$ curl -s http://opdemand-example--ruby--sinatra.danabox.es
 Powered by Deis!
 			</pre>
 		</li>
 	</ul>
 
-	<strong>Crowdbox credit pool total: {{ formation.crowdbox_credits }}</strong>
+	<strong>Dānabox credit pool total: {{ formation.danabox_credits }}</strong>
 
-	<h2>All applications currently installed on Crowdbox</h2>
+	<h2>All applications currently installed on Dānabox</h2>
 	  <ul>
 	    {% for app in apps %}
 	  	<li>

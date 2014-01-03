@@ -158,7 +158,7 @@ def converge_controller():
 
     :returns: the output of the convergence command, in this case `sudo chef-client`
     """
-    # Deis only runs the gitosis recipe. Seeing as Crowdbox doesn't use gitosis then there's
+    # Deis only runs the gitosis recipe. Seeing as Danabox doesn't use gitosis then there's
     # nothing to do here.
     pass
 

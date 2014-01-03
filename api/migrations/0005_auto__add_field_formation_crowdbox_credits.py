@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Formation.crowdbox_credits'
-        db.add_column(u'api_formation', 'crowdbox_credits',
+        # Adding field 'Formation.danabox_credits'
+        db.add_column(u'api_formation', 'danabox_credits',
                       self.gf('django.db.models.fields.FloatField')(default=0),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Formation.crowdbox_credits'
-        db.delete_column(u'api_formation', 'crowdbox_credits')
+        # Deleting field 'Formation.danabox_credits'
+        db.delete_column(u'api_formation', 'danabox_credits')
 
 
     models = {
@@ -86,7 +86,7 @@ class Migration(SchemaMigration):
         u'api.formation': {
             'Meta': {'unique_together': "((u'owner', u'id'),)", 'object_name': 'Formation'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'crowdbox_credits': ('django.db.models.fields.FloatField', [], {'default': '0'}),
+            'danabox_credits': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'domain': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '64'}),
             'nodes': ('json_field.fields.JSONField', [], {'default': "u'{}'", 'blank': 'True'}),

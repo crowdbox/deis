@@ -45,5 +45,5 @@ def app(request, id):
         'form': form,
         'settings': settings,
         'pool_cut': "{}%".format(settings.POOL_CUT * 100),
-        'crowdbox_cut': "{}%".format(settings.CROWDBOX_CUT * 100),
+        'danabox_cut': "{}%".format(settings.DANABOX_CUT * 100),
     })
