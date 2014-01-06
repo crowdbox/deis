@@ -1,0 +1,43 @@
+body {
+  font-family: 'Exo', sans-serif;
+  color: #3b3b3b;
+}
+p {
+  font-size: 18px;
+}
+.container {
+  width: 900px;
+}
+.home header {
+  padding-top: 30px;
+  padding-bottom: 20px;
+  overflow: hidden;
+  width: 525px;
+  margin: auto;
+}
+.home .heading {
+  float: left;
+  margin-left: 7px;
+  margin-top: 52px;
+  letter-spacing: 8px;
+  font-size: 66px;
+}
+.home img{
+  float: left;
+}
+.home .strapline {
+  letter-spacing: 3px;
+  line-height: 41px;
+  float: left;
+  margin: -3px 0 0 10px;
+  font-size: 26px;
+}
+.beta_text {
+  font-size: 2.5em;
+  margin: auto;
+  display: block;
+  text-align: center;
+  line-height: 100%;
+  margin-bottom: 55px;
+}
+
