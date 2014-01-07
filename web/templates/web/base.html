@@ -24,22 +24,37 @@
 
   <div class="container">
 
-      <div class="column_calc contents">
-        {% if messages %}
-          {% for message in messages %}
-          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            {{ message }}
-          </div>
-          {% endfor %}
-        {% endif %}
-        {% block content %}{% endblock %}
-      </div>
+    <div class="column_calc contents">
+      <header>
+         <a href="/">
+          <img class="logo" src="{% static "img/logo.png" %}">
+          <h1 class="heading">Dānabox</h1>
+          <span class="strapline">Crowdfunded Hosting</span>
+        </a>
+      </header>
+
+      <em class="beta_text">Currently in private beta.</em>
+
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ message }}
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block content %}{% endblock %}
+
+      <footer>
+        Dānabox
+      </footer>
+    </div>
 
   </div> <!-- container -->
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="js/jquery-1.10.2.min.js"><\/script>')</script>
+  <script>window.jQuery || document.write('<script src="js/jquery-1.10.2.min.js"><\/script>');</script>
   <script src="{% static 'js/bootstrap.min.js' %}"></script>
 </body>
 

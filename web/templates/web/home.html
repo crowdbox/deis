@@ -6,48 +6,73 @@
 {% block body_class %}home{% endblock %}
 
 {% block content %}
-<header>
-  <img class="logo" src="{% static "img/logo.png" %}">
-  <h1 class="heading">Dānabox</h1>
-  <span class="strapline">Crowdfunded Hosting</span>
-</header>
 
-<em class="beta_text">Currently in private beta.</em>
-
-<p>
-	Dānabox is a Heroku-inspired hosting platform. The difference being that each app is funded
-	by donations in the style of Wikipedia. Because of its donation-based funding model only public
-	Github repositories can be hosted on it.
+<p class="hero">
+  A <a href="http://heroku.com">Heroku</a>-inspired hosting platform where the payment pages are 
+  public. <em>Anyone</em> can contribute to the hosting costs of an app.
 </p>
 
-<p>Dānabox is built on <a href="http://deis.io">Deis</a>.</p>
+<p>
+  We promise that all money donated to an app will <em>only</em> ever be used for computation costs. App owners are not
+  allowed access to the money. To inspire confidence that donations are put to good use, all code deployed to Dānabox
+  must be publically available on <a href="http://github.com">Github</a>.
+</p>
 
-<h2>Getting Started</h2>
+<p>
+  Dānabox is <a href="https://github.com/danabox">open source</a>, built on <a href="http://deis.io">Deis</a>, hosted
+  with <a href="http://digitalocean.com/">Digital Ocean</a> and will <em>never</em> be a for-profit organisation.
+</p>
 
-<ol>
-	<li>
-		Install the Dānabox client using <a href="http://www.pip-installer.org/en/latest/installing.html">pip</a>:
-		<pre>$ pip install danabox</pre>
-	</li>
+<p>
+  There are currently <strong>{{ formation.danabox_credits }}</strong> credits in the central pool from which all apps
+  can draw.
+</p>
 
-	<li>
-		Login using your Github credentials:
-		<pre>$ danabox login</pre>
-	</li>
+<p class="definition">
+  <strong>Dāna</strong>: /d̪aːna/ Pali. The inclination to give, without expecting any form of repayment
+  from the recipient.
+</p>
 
-	<li>
-		Go to the local version of your Github repository:
-		<pre>
-$ cd <my-application-repo>
+<div class="getting_started">
+  <h2>Getting Started</h2>
+  <p>Because Dānabox is based on Heroku, a lot of the <a href="https://devcenter.heroku.com/articles/quickstart">Heroku 
+  documentation</a> is applicable. If an app runs on Heroku it should run on Dānabox. Here is how you would deploy your
+  first app with Dānabox:</p>
+  <ol>
+  	<li>
+      <span class="gs_step">
+    		Install the Dānabox client using <a href="http://www.pip-installer.org/en/latest/installing.html">pip</a>:
+      </span>
+  		<pre><code>$ pip install danabox</code></pre>
+  	</li>
+
+    <div style="clear:both"></div>
+
+  	<li>
+      <span class="gs_step">
+    		Login using your Github credentials:
+      </span>
+  		<pre><code>$ danabox login</code></pre>
+  	</li>
+
+    <div style="clear:both"></div>
+
+  	<li>
+      <span class="gs_step">
+  		  Go to the local version of your Github repository:
+      </span>
+<pre><code>$ cd /path/to/my-application-repo
 $ danabox create
-Creating application... done, created opdemand-example--ruby--sinatra
-		</pre>
-	</li>
+Creating application... done, created opdemand-example--ruby--sinatra</code></pre>
+  	</li>
 
-	<li>
-		Use `danabox deploy` to deploy your application:
-		<pre>
-$ danabox deploy
+    <div style="clear:both"></div>
+
+  	<li>
+      <span class="gs_step">
+    		Use `danabox deploy` to deploy your application:
+      </span>
+<pre><code>$ danabox deploy
 From https://github.com/opdemand/example-ruby-sinatra
 * branch            master     -> FETCH_HEAD
 Already up-to-date.
@@ -77,23 +102,32 @@ Already up-to-date.
 -----> Donation page available at:
      http://danabox.io/app/opdemand-example--ruby--sinatra
 
-     To learn more, use `deis help` or visit http://danabox.io
+     To learn more, use `danabox help` or visit http://danabox.io</code></pre>
+  	</li>
 
-$ curl -s http://opdemand-example--ruby--sinatra.danabox.es
-Powered by Deis!
-		</pre>
-	</li>
-</ol>
+    <div style="clear:both"></div>
 
-<strong>Dānabox credit pool total: {{ formation.danabox_credits }}</strong>
+  </ol>
+</div>
 
-<h2>All applications currently installed on Dānabox</h2>
+<h2 class="all_applications">All applications currently installed on Dānabox</h2>
 <ul>
   {% for app in apps %}
 	<li>
       <a href="{% url 'web.views.app' app.id %}">
         {{ app.id }}
-      </a>
+      </a> |
+      <a href="http://github.com/{{ app.owner.username }}">
+        {{ app.owner.username }}
+      </a> |
+      <a href="{{ app.github_uri }}">
+        Github
+      </a> |
+      <a href="http://{{ app.id }}.danabox.es">
+        Visit
+      </a> |
+        Uptime: {{ app.heartbeats }} minutes |
+        Credits: {{ app.credits }}
   </li>
   {% endfor %}
 </ul>

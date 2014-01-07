@@ -3,6 +3,7 @@ View classes for presenting Deis web pages.
 """
 
 from django.shortcuts import render
+from django.contrib import messages
 from api.models import App
 from api.models import Formation
 from web.forms import CaptchaForm
@@ -34,7 +35,11 @@ def app(request, id):
         # check the input
         if form.is_valid():
             app.addCredits(settings.CREDITS_PER_CAPTCHA)
-            time.sleep(1)  # Gotta be a better way of waiting for the transaction to complete...
+            time.sleep(2)  # Gotta be a better way of waiting for the transaction to complete...
+            messages.success(
+                request,
+                "{} credits successfully donated.".format(settings.CREDITS_PER_CAPTCHA)
+            )
     else:
         form = CaptchaForm()
 
