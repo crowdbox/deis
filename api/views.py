@@ -144,6 +144,21 @@ class GithubAuthView(viewsets.GenericViewSet,
         request._data = request.DATA.copy()
         username = request._data['username']
         password = request._data['password']
+
+        # Private Beta access
+        from django.conf import settings
+        allowed = False
+        with open('{}/beta_users.txt'.format(settings.PROJECT_ROOT), 'rU') as f:
+            for line in f:
+                if line.strip() == username:
+                    allowed = True
+                    break
+            if not allowed:
+                return Response(
+                    "We're in private beta. Please contact @danaboxes or hi@danabox.io for access.",
+                    status=401
+                )
+
         r = urllib2.Request(
             "https://api.github.com/authorizations/clients/8f3498a2fac9beebb300"
         )
@@ -157,7 +172,13 @@ class GithubAuthView(viewsets.GenericViewSet,
             ]
         }
         """ % os.environ['GITHUB_CLIENT_SECRET']
-        response = json.load(urllib2.urlopen(r, data=data))
+        try:
+            response = json.load(urllib2.urlopen(r, data=data))
+        except:
+            return Response(
+                "Possibly bad password.",
+                status=401
+            )
         oauth_token = response['token']
         user = models.User.objects.filter(username=username)
         if user:

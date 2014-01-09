@@ -67,3 +67,5 @@ logs
 static
 !static/
 venv
+
+beta_users.txt
