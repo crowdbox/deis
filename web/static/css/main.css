@@ -108,16 +108,16 @@ pre code {
 }
 .captcha_submit {
   clear: right;
-  float: right;
+  float: left;
 }
 .errorlist li {
   list-style-type: none;
-  color: #e05a45;
 }
 .get_in_touch {
   font-size: 19px;
   letter-spacing: 0.3px;
 }
+
 footer {
   margin-top: 3em;
   text-align: center;
