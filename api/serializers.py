@@ -179,9 +179,9 @@ class AppSerializer(serializers.ModelSerializer):
         Check that the ID is all lowercase
         """
         value = attrs[source]
-        match = re.match(r'^[a-z0-9-_]+$', value)
+        match = re.match(r'^[a-zA-Z0-9-_]+$', value)
         if not match:
-            raise serializers.ValidationError("App IDs can only contain [a-z0-9-]")
+            raise serializers.ValidationError("App IDs can only contain [a-zA-Z0-9-]")
         return attrs
 
 
